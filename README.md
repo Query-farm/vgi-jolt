@@ -4,7 +4,9 @@
 
 <p align="center"><em>A <a href="https://query.farm">Query.Farm</a> VGI worker for DuckDB.</em></p>
 
-# vgi-jolt
+# Declarative JSON-to-JSON Transformation in DuckDB
+
+> **vgi-jolt** · a [Query.Farm](https://query.farm) VGI worker · powered by Jolt
 
 A [VGI](https://query.farm) worker that performs **declarative JSON→JSON
 structural transformation** via [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt),
