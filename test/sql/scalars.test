@@ -1,0 +1,140 @@
+# name: test/sql/scalars.test
+# group: [vgi_jolt]
+#
+# Scalars: jolt_transform, jolt_shift, jolt_default, is_valid_jolt_spec, json_valid.
+
+require-env VGI_JOLT_WORKER
+
+statement ok
+LOAD vgi;
+
+# haybarn does not autoload the json extension; load it explicitly so
+# json_extract / json_extract_string are available for semantic assertions.
+statement ok
+LOAD json;
+
+statement ok
+ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION '${VGI_JOLT_WORKER}');
+
+# ---- jolt_transform: full shift chainr remaps a nested value ----------------
+
+# Assert on the extracted field (not raw string) since Jolt key order may vary.
+query I
+SELECT json_extract(
+  jolt.jolt_transform(
+    '{"rating":{"primary":{"value":3}}}',
+    '[{"operation":"shift","spec":{"rating":{"primary":{"value":"Rating"}}}}]'),
+  '$.Rating');
+----
+3
+
+# ---- jolt_transform: shift + default + remove chainr ------------------------
+
+query II
+SELECT
+  json_extract(t, '$.Rating'),
+  json_extract(t, '$.Reviewed')
+FROM (
+  SELECT jolt.jolt_transform(
+    '{"rating":{"primary":{"value":4}},"id":"abc"}',
+    '[{"operation":"shift","spec":{"rating":{"primary":{"value":"Rating"}},"id":"ProductId"}},'
+    '{"operation":"default","spec":{"Reviewed":true}},'
+    '{"operation":"remove","spec":{"ProductId":""}}]') AS t
+);
+----
+4	true
+
+# The removed key is gone.
+query I
+SELECT json_extract(
+  jolt.jolt_transform(
+    '{"rating":{"primary":{"value":4}},"id":"abc"}',
+    '[{"operation":"shift","spec":{"rating":{"primary":{"value":"Rating"}},"id":"ProductId"}},'
+    '{"operation":"remove","spec":{"ProductId":""}}]'),
+  '$.ProductId') IS NULL;
+----
+true
+
+# ---- jolt_shift convenience -------------------------------------------------
+
+query I
+SELECT json_extract(
+  jolt.jolt_shift(
+    '{"rating":{"primary":{"value":3}}}',
+    '{"rating":{"primary":{"value":"Rating"}}}'),
+  '$.Rating');
+----
+3
+
+# ---- jolt_default convenience -----------------------------------------------
+
+query I
+SELECT json_extract_string(
+  jolt.jolt_default('{"name":"widget"}', '{"inStock":true}'),
+  '$.name');
+----
+widget
+
+query I
+SELECT json_extract(
+  jolt.jolt_default('{"name":"widget"}', '{"inStock":true}'),
+  '$.inStock');
+----
+true
+
+# ---- NULL input -> NULL -----------------------------------------------------
+
+query I
+SELECT jolt.jolt_transform(
+  NULL,
+  '[{"operation":"shift","spec":{"a":"b"}}]') IS NULL;
+----
+true
+
+# ---- is_valid_jolt_spec -----------------------------------------------------
+
+query I
+SELECT jolt.is_valid_jolt_spec('[{"operation":"shift","spec":{"a":"b"}}]');
+----
+true
+
+query I
+SELECT jolt.is_valid_jolt_spec('[{"operation":"no-such-op","spec":{}}]');
+----
+false
+
+query I
+SELECT jolt.is_valid_jolt_spec('not json at all');
+----
+false
+
+# ---- json_valid -------------------------------------------------------------
+
+query I
+SELECT jolt.json_valid('{"a":1}');
+----
+true
+
+query I
+SELECT jolt.json_valid('{not valid');
+----
+false
+
+# NULL -> NULL.
+query I
+SELECT jolt.json_valid(NULL) IS NULL;
+----
+true
+
+# ---- malformed spec / input raise a clear error -----------------------------
+
+statement error
+SELECT jolt.jolt_transform('{"a":1}', '{not a valid spec');
+----
+
+statement error
+SELECT jolt.jolt_transform('{not json', '[{"operation":"shift","spec":{"a":"b"}}]');
+----
+
+statement ok
+DETACH jolt;
