@@ -4,6 +4,7 @@ import com.bazaarvoice.jolt.Defaultr;
 import com.bazaarvoice.jolt.JsonUtils;
 import farm.query.vgi.function.Arguments;
 import farm.query.vgi.function.FunctionMetadata;
+import farm.query.vgi.protocol.FunctionExample;
 import farm.query.vgi.scalar.Const;
 import farm.query.vgi.scalar.ScalarFn;
 import farm.query.vgi.scalar.Vector;
@@ -30,14 +31,56 @@ public final class DefaultFunction extends ScalarFn {
     }
 
     @Override public FunctionMetadata metadata() {
+        String exampleSql =
+                "SELECT jolt.main.jolt_default("
+                        + "'{\"name\":\"widget\"}', "
+                        + "'{\"inStock\":true,\"currency\":\"USD\"}');";
+        String exampleDesc =
+                "Apply a bare Jolt default spec to fill in inStock and currency keys "
+                        + "that are absent from the input document.";
         return FunctionMetadata.describe(description())
                 .withCategories("jolt", "json", "transform")
-                .withTag("vgi.example_queries", JoltEngine.exampleQueriesTag(
-                        "SELECT jolt.main.jolt_default("
-                                + "'{\"name\":\"widget\"}', "
-                                + "'{\"inStock\":true,\"currency\":\"USD\"}');",
-                        "Apply a bare Jolt default spec to fill in inStock and currency keys "
-                                + "that are absent from the input document."));
+                .withExamples(java.util.List.of(
+                        new FunctionExample(exampleSql, exampleDesc, null)))
+                .withTags(Meta.objectTags(
+                        "Apply Jolt Default Operation",
+                        "Apply a single [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) "
+                                + "**default** operation to a JSON document and return the "
+                                + "result.\n\n"
+                                + "The default operation supplies values for keys that are "
+                                + "**absent** from the input; existing keys are left untouched. "
+                                + "Use it to normalize documents to a known shape (guaranteeing "
+                                + "fields exist, supplying fallback defaults) before downstream "
+                                + "processing.\n\n"
+                                + "**Inputs:** `input_json` (VARCHAR/BLOB JSON, the data vector) "
+                                + "and `default_spec` (a constant **bare** default spec object). "
+                                + "The `Defaultr` is built once per batch.\n\n"
+                                + "**Output:** the enriched document as a JSON VARCHAR. NULL "
+                                + "input row yields NULL; malformed input JSON or default spec "
+                                + "raises a DuckDB error.",
+                        "# jolt_default\n\n"
+                                + "Apply one Jolt **default** operation &mdash; supply values "
+                                + "for keys absent from the input document.\n\n"
+                                + "## Usage\n\n"
+                                + "```sql\n"
+                                + "SELECT jolt.main.jolt_default(\n"
+                                + "  '{\"name\":\"widget\"}',\n"
+                                + "  '{\"inStock\":true,\"currency\":\"USD\"}');\n"
+                                + "-- => {\"name\":\"widget\",\"inStock\":true,"
+                                + "\"currency\":\"USD\"}\n"
+                                + "```\n\n"
+                                + "Keys already present in the input win; the spec only fills "
+                                + "gaps. The spec is the **bare** default spec object, not the "
+                                + "chainr operation envelope.\n\n"
+                                + "## Notes\n\n"
+                                + "- Returns VARCHAR JSON; output key order is not guaranteed.\n"
+                                + "- NULL input row maps to a NULL result.\n"
+                                + "- Malformed input JSON or default spec raises an error.",
+                        "jolt, default, defaultr, json, fill, fallback, supply defaults, "
+                                + "normalize, ensure keys, json default",
+                        "DefaultFunction.java"))
+                .withTag("vgi.example_queries",
+                        JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

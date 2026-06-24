@@ -136,15 +136,37 @@ public final class JoltEngine {
 
     /**
      * Build the JSON value for a {@code vgi.example_queries} function tag from a
-     * single {@code (sql, description)} example. The result is a JSON array of one
-     * {@code {"sql","description"}} object; JSON escaping is handled by json-utils
-     * so the (often quote-heavy) Jolt SQL examples are encoded correctly.
+     * single {@code (description, sql)} example. The result is a JSON array of one
+     * {@code {"description","sql"}} object (the shape the linter decodes); JSON
+     * escaping of the quote-heavy Jolt SQL is handled by json-utils.
      */
-    public static String exampleQueriesTag(String sql, String description) {
+    public static String exampleQueriesTag(String description, String sql) {
         java.util.Map<String, Object> ex = new java.util.LinkedHashMap<>();
-        ex.put("sql", sql);
         ex.put("description", description);
+        ex.put("sql", sql);
         return JsonUtils.toJsonString(java.util.List.of(ex));
+    }
+
+    /**
+     * Build the JSON value for a {@code vgi.executable_examples} tag (VGI509) from a
+     * list of {@code (description, sql)} pairs. Each entry becomes a
+     * {@code {"description","sql"}} object; {@code expected_result} is intentionally
+     * omitted. JSON escaping (the quote-heavy Jolt SQL) is handled by json-utils.
+     *
+     * @param pairs alternating {@code description, sql, description, sql, ...}
+     */
+    public static String executableExamplesTag(String... pairs) {
+        if (pairs.length % 2 != 0) {
+            throw new IllegalArgumentException("expected alternating description, sql pairs");
+        }
+        java.util.List<java.util.Map<String, Object>> examples = new java.util.ArrayList<>();
+        for (int i = 0; i < pairs.length; i += 2) {
+            java.util.Map<String, Object> ex = new java.util.LinkedHashMap<>();
+            ex.put("description", pairs[i]);
+            ex.put("sql", pairs[i + 1]);
+            examples.add(ex);
+        }
+        return JsonUtils.toJsonString(examples);
     }
 
     private static String rootMessage(Throwable e) {

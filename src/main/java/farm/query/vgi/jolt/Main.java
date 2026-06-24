@@ -25,8 +25,13 @@ public final class Main {
     /** Catalog-level metadata tags (provenance, descriptions, support) for the linter and DuckDB. */
     private static java.util.Map<String, String> catalogTags() {
         var tags = new java.util.LinkedHashMap<String, String>();
+        tags.put("vgi.title", "Jolt JSON Transformation");
         tags.put(
-                "vgi.description_llm",
+                "vgi.keywords",
+                "jolt, json, transform, transformation, shift, default, chainr, restructure, "
+                        + "reshape, remap, rename, normalize, json validation, bazaarvoice");
+        tags.put(
+                "vgi.doc_llm",
                 "Apply declarative Bazaarvoice Jolt transformations to JSON documents in SQL: "
                         + "run a full Jolt chainr spec (a JSON array of shift/default/remove/"
                         + "cardinality/sort/modify operations), or a single shift or default "
@@ -35,7 +40,7 @@ public final class Main {
                         + "or reshape JSON payloads (API responses, event streams, nested records) "
                         + "without leaving SQL.");
         tags.put(
-                "vgi.description_md",
+                "vgi.doc_md",
                 "# jolt\n\n"
                         + "Declarative **JSON->JSON** structural transformation over Apache Arrow, "
                         + "powered by [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt).\n\n"
@@ -54,14 +59,44 @@ public final class Main {
     /** Schema-level metadata tags for the single {@code main} schema. */
     private static java.util.Map<String, String> schemaTags() {
         var tags = new java.util.LinkedHashMap<String, String>();
+        tags.put("vgi.title", "Jolt — main");
         tags.put(
-                "vgi.description_llm",
+                "vgi.keywords",
+                "jolt, json, transform, shift, default, jolt_transform, jolt_shift, "
+                        + "jolt_default, is_valid_jolt_spec, json_valid, validation, reshape");
+        // VGI123 classifying tags — BARE keys (NOT vgi.-namespaced) for faceting.
+        tags.put("domain", "data-transformation");
+        tags.put("category", "json");
+        tags.put("topic", "structural-transformation");
+        tags.put(
+                "vgi.source_url",
+                "https://github.com/Query-farm/vgi-jolt/blob/main/src/main/java/farm/query/vgi/"
+                        + "jolt/Main.java");
+        tags.put(
+                "vgi.doc_llm",
                 "JSON transformation and validation functions powered by Bazaarvoice Jolt: apply a "
                         + "full Jolt chainr spec or a single shift/default operation to a JSON "
                         + "document, and validate Jolt specs and JSON documents.");
         tags.put(
-                "vgi.description_md",
-                "Declarative JSON->JSON transformation and validation functions over Apache Arrow.");
+                "vgi.doc_md",
+                "Declarative JSON->JSON transformation and validation functions over Apache Arrow, "
+                        + "powered by Bazaarvoice Jolt.");
+        // VGI506 representative example queries for the schema (plain SQL string).
+        tags.put(
+                "vgi.example_queries",
+                "SELECT jolt.main.jolt_transform("
+                        + "'{\"rating\":{\"primary\":{\"value\":3}}}', "
+                        + "'[{\"operation\":\"shift\",\"spec\":"
+                        + "{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]');\n"
+                        + "SELECT jolt.main.jolt_shift("
+                        + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
+                        + "'{\"first\":\"name.given\",\"last\":\"name.family\"}');\n"
+                        + "SELECT jolt.main.jolt_default("
+                        + "'{\"name\":\"widget\"}', "
+                        + "'{\"inStock\":true,\"currency\":\"USD\"}');\n"
+                        + "SELECT jolt.main.is_valid_jolt_spec("
+                        + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]');\n"
+                        + "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}');");
         return tags;
     }
 

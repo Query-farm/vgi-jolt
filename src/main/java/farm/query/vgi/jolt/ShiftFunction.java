@@ -4,6 +4,7 @@ import com.bazaarvoice.jolt.JsonUtils;
 import com.bazaarvoice.jolt.Shiftr;
 import farm.query.vgi.function.Arguments;
 import farm.query.vgi.function.FunctionMetadata;
+import farm.query.vgi.protocol.FunctionExample;
 import farm.query.vgi.scalar.Const;
 import farm.query.vgi.scalar.ScalarFn;
 import farm.query.vgi.scalar.Vector;
@@ -30,14 +31,75 @@ public final class ShiftFunction extends ScalarFn {
     }
 
     @Override public FunctionMetadata metadata() {
+        String exampleSql =
+                "SELECT jolt.main.jolt_shift("
+                        + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
+                        + "'{\"first\":\"name.given\",\"last\":\"name.family\"}');";
+        String exampleDesc =
+                "Apply a bare Jolt shift spec to rename and nest flat input keys into "
+                        + "a name object with given/family.";
         return FunctionMetadata.describe(description())
                 .withCategories("jolt", "json", "transform")
-                .withTag("vgi.example_queries", JoltEngine.exampleQueriesTag(
+                .withExamples(java.util.List.of(
+                        new FunctionExample(exampleSql, exampleDesc, null)))
+                .withTags(Meta.objectTags(
+                        "Apply Jolt Shift Operation",
+                        "Apply a single [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) "
+                                + "**shift** operation to a JSON document &mdash; the most common "
+                                + "Jolt operation &mdash; and return the transformed JSON "
+                                + "string.\n\n"
+                                + "A shift spec is a tree that mirrors the input: each leaf is an "
+                                + "**output path** telling Jolt where to copy the matched input "
+                                + "value. This is the convenience entry point for the single "
+                                + "shift case; for multi-step pipelines use `jolt_transform`.\n\n"
+                                + "**Inputs:** `input_json` (VARCHAR/BLOB JSON, the data vector) "
+                                + "and `shift_spec` (a constant **bare** shift spec object, NOT "
+                                + "wrapped in the `{\"operation\":\"shift\",...}` chainr "
+                                + "envelope). The `Shiftr` is built once per batch.\n\n"
+                                + "**Output:** the reshaped document as a JSON VARCHAR. NULL "
+                                + "input row yields NULL; malformed input JSON or shift spec "
+                                + "raises a DuckDB error.",
+                        "# jolt_shift\n\n"
+                                + "Apply one Jolt **shift** operation &mdash; path-based "
+                                + "copy/move of input values into an output tree.\n\n"
+                                + "## Usage\n\n"
+                                + "```sql\n"
+                                + "SELECT jolt.main.jolt_shift(\n"
+                                + "  '{\"first\":\"Ada\",\"last\":\"Lovelace\"}',\n"
+                                + "  '{\"first\":\"name.given\",\"last\":\"name.family\"}');\n"
+                                + "-- => {\"name\":{\"given\":\"Ada\",\"family\":\"Lovelace\"}}\n"
+                                + "```\n\n"
+                                + "The spec is the **bare** shift spec object, not the chainr "
+                                + "operation envelope. Wildcards (`*`), array indexing, and `@`/"
+                                + "`#`/`$` references follow standard Jolt shift semantics.\n\n"
+                                + "## Notes\n\n"
+                                + "- Returns VARCHAR JSON; output key order is not guaranteed.\n"
+                                + "- NULL input row maps to a NULL result.\n"
+                                + "- Malformed input JSON or shift spec raises an error.",
+                        "jolt, shift, shiftr, json, copy, move, rename, nest, restructure, "
+                                + "path, mapping, json shift",
+                        "ShiftFunction.java"))
+                .withTag("vgi.example_queries",
+                        JoltEngine.exampleQueriesTag(exampleDesc, exampleSql))
+                .withTag("vgi.executable_examples", JoltEngine.executableExamplesTag(
+                        "Rename and nest flat keys into a name object via a bare shift spec.",
                         "SELECT jolt.main.jolt_shift("
                                 + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
-                                + "'{\"first\":\"name.given\",\"last\":\"name.family\"}');",
-                        "Apply a bare Jolt shift spec to rename and nest flat input keys into "
-                                + "a name object with given/family."));
+                                + "'{\"first\":\"name.given\",\"last\":\"name.family\"}') AS out",
+                        "Lift a deeply nested value to the top level with a full chainr spec.",
+                        "SELECT jolt.main.jolt_transform("
+                                + "'{\"rating\":{\"primary\":{\"value\":3}}}', "
+                                + "'[{\"operation\":\"shift\",\"spec\":"
+                                + "{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]') AS out",
+                        "Fill in default keys absent from the input document.",
+                        "SELECT jolt.main.jolt_default("
+                                + "'{\"name\":\"widget\"}', "
+                                + "'{\"inStock\":true,\"currency\":\"USD\"}') AS out",
+                        "Validate that a string is a well-formed Jolt chainr spec.",
+                        "SELECT jolt.main.is_valid_jolt_spec("
+                                + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]') AS ok",
+                        "Validate that a string is a well-formed JSON document.",
+                        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}') AS ok"));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {
