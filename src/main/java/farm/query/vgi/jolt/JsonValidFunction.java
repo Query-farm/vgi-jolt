@@ -24,7 +24,12 @@ public final class JsonValidFunction extends ScalarFn {
     }
 
     @Override public FunctionMetadata metadata() {
-        return FunctionMetadata.describe(description()).withCategories("jolt", "json", "validation");
+        return FunctionMetadata.describe(description())
+                .withCategories("jolt", "json", "validation")
+                .withTag("vgi.example_queries", JoltEngine.exampleQueriesTag(
+                        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}');",
+                        "Returns true: the input is a well-formed JSON document. Malformed JSON "
+                                + "returns false instead of erroring."));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

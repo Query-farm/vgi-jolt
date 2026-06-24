@@ -34,7 +34,15 @@ public final class TransformFunction extends ScalarFn {
     }
 
     @Override public FunctionMetadata metadata() {
-        return FunctionMetadata.describe(description()).withCategories("jolt", "json", "transform");
+        return FunctionMetadata.describe(description())
+                .withCategories("jolt", "json", "transform")
+                .withTag("vgi.example_queries", JoltEngine.exampleQueriesTag(
+                        "SELECT jolt.main.jolt_transform("
+                                + "'{\"rating\":{\"primary\":{\"value\":3}}}', "
+                                + "'[{\"operation\":\"shift\",\"spec\":"
+                                + "{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]');",
+                        "Apply a full Jolt chainr spec (a single shift operation) to lift a "
+                                + "deeply nested value up to a top-level Rating key."));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

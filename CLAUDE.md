@@ -17,7 +17,7 @@ functions** — every function is a scalar, so this worker does not use a
 
 The worker itself is **MIT** (see `LICENSE`). Runtime dependencies:
 
-- VGI SDK: `farm.query:vgi:0.4.0` (+ `farm.query:vgirpc:0.10.2`, declared
+- VGI SDK: `farm.query:vgi:0.5.0` (+ `farm.query:vgirpc:0.10.2`, declared
   explicitly since the code imports `farm.query.vgirpc.*`).
 - **Bazaarvoice Jolt**: `com.bazaarvoice.jolt:jolt-core:0.1.8` +
   `:json-utils:0.1.8` — **Apache License 2.0**, a permissive license compatible

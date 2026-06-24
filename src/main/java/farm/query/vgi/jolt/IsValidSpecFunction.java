@@ -25,7 +25,14 @@ public final class IsValidSpecFunction extends ScalarFn {
     }
 
     @Override public FunctionMetadata metadata() {
-        return FunctionMetadata.describe(description()).withCategories("jolt", "json", "validation");
+        return FunctionMetadata.describe(description())
+                .withCategories("jolt", "json", "validation")
+                .withTag("vgi.example_queries", JoltEngine.exampleQueriesTag(
+                        "SELECT jolt.main.is_valid_jolt_spec("
+                                + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]');",
+                        "Returns true: the input parses and compiles as a Jolt chainr spec. An "
+                                + "unknown operation or malformed JSON returns false instead of "
+                                + "erroring."));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

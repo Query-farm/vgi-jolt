@@ -30,7 +30,14 @@ public final class ShiftFunction extends ScalarFn {
     }
 
     @Override public FunctionMetadata metadata() {
-        return FunctionMetadata.describe(description()).withCategories("jolt", "json", "transform");
+        return FunctionMetadata.describe(description())
+                .withCategories("jolt", "json", "transform")
+                .withTag("vgi.example_queries", JoltEngine.exampleQueriesTag(
+                        "SELECT jolt.main.jolt_shift("
+                                + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
+                                + "'{\"first\":\"name.given\",\"last\":\"name.family\"}');",
+                        "Apply a bare Jolt shift spec to rename and nest flat input keys into "
+                                + "a name object with given/family."));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

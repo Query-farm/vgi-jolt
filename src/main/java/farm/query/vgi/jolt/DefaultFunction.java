@@ -30,7 +30,14 @@ public final class DefaultFunction extends ScalarFn {
     }
 
     @Override public FunctionMetadata metadata() {
-        return FunctionMetadata.describe(description()).withCategories("jolt", "json", "transform");
+        return FunctionMetadata.describe(description())
+                .withCategories("jolt", "json", "transform")
+                .withTag("vgi.example_queries", JoltEngine.exampleQueriesTag(
+                        "SELECT jolt.main.jolt_default("
+                                + "'{\"name\":\"widget\"}', "
+                                + "'{\"inStock\":true,\"currency\":\"USD\"}');",
+                        "Apply a bare Jolt default spec to fill in inStock and currency keys "
+                                + "that are absent from the input document."));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

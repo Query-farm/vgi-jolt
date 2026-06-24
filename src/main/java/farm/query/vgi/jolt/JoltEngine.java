@@ -134,6 +134,19 @@ public final class JoltEngine {
         }
     }
 
+    /**
+     * Build the JSON value for a {@code vgi.example_queries} function tag from a
+     * single {@code (sql, description)} example. The result is a JSON array of one
+     * {@code {"sql","description"}} object; JSON escaping is handled by json-utils
+     * so the (often quote-heavy) Jolt SQL examples are encoded correctly.
+     */
+    public static String exampleQueriesTag(String sql, String description) {
+        java.util.Map<String, Object> ex = new java.util.LinkedHashMap<>();
+        ex.put("sql", sql);
+        ex.put("description", description);
+        return JsonUtils.toJsonString(java.util.List.of(ex));
+    }
+
     private static String rootMessage(Throwable e) {
         Throwable t = e;
         while (t.getCause() != null && t.getCause() != t) {
