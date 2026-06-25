@@ -69,7 +69,13 @@ public final class JsonValidFunction extends ScalarFn {
         return Schemas.BOOL;
     }
 
-    public void compute(@Vector(value = "input_json", any = true) FieldVector in, BitVector out) {
+    public void compute(@Vector(value = "input_json", any = true,
+                                doc = "The candidate JSON document to validate (one value per "
+                                        + "row, given either as JSON text or as raw JSON bytes). "
+                                        + "Returns true when it parses as well-formed JSON via the "
+                                        + "Jolt JSON reader, false otherwise. A NULL row yields a "
+                                        + "NULL result and validation never raises an error.")
+                                FieldVector in, BitVector out) {
         int n = in.getValueCount();
         for (int i = 0; i < n; i++) {
             String json = JsonInput.at(in, i);

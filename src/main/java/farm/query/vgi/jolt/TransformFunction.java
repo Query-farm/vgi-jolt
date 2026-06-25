@@ -98,8 +98,20 @@ public final class TransformFunction extends ScalarFn {
         return Schemas.UTF8;
     }
 
-    public void compute(@Vector(value = "input_json", any = true) FieldVector in,
-                        @Const("spec_json") String specJson,
+    public void compute(@Vector(value = "input_json", any = true,
+                                doc = "The JSON document to transform (one value per row, given "
+                                        + "either as JSON text or as raw JSON bytes). This is the "
+                                        + "data column; the Jolt spec is applied to each row's "
+                                        + "document. A NULL row yields a NULL result; malformed "
+                                        + "JSON raises an error.") FieldVector in,
+                        @Const(value = "spec_json",
+                               doc = "A constant Jolt chainr specification: a JSON array of "
+                                       + "operation entries, each {\"operation\": <name>, "
+                                       + "\"spec\": <op-spec>} (e.g. shift, default, remove, "
+                                       + "cardinality, sort, modify-*-beta), applied in order. "
+                                       + "Compiled once per batch and reused for every input row; "
+                                       + "a malformed or invalid spec raises an error.")
+                               String specJson,
                         VarCharVector out) {
         // Compile the chainr once for the whole batch; a bad spec is a clear error.
         Chainr chainr = JoltEngine.compile(specJson);

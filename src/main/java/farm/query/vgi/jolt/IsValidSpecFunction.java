@@ -75,7 +75,14 @@ public final class IsValidSpecFunction extends ScalarFn {
         return Schemas.BOOL;
     }
 
-    public void compute(@Vector(value = "spec_json", any = true) FieldVector in, BitVector out) {
+    public void compute(@Vector(value = "spec_json", any = true,
+                                doc = "The candidate Jolt chainr spec to validate (one value per "
+                                        + "row, given either as JSON text or as raw JSON bytes). "
+                                        + "Returns true when it both parses as JSON and compiles "
+                                        + "via Chainr.fromSpec; false for malformed JSON, a "
+                                        + "non-array, or an unknown operation. A NULL row yields a "
+                                        + "NULL result and validation never raises an error.")
+                                FieldVector in, BitVector out) {
         int n = in.getValueCount();
         for (int i = 0; i < n; i++) {
             String spec = JsonInput.at(in, i);

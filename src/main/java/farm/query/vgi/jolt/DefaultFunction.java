@@ -87,8 +87,19 @@ public final class DefaultFunction extends ScalarFn {
         return Schemas.UTF8;
     }
 
-    public void compute(@Vector(value = "input_json", any = true) FieldVector in,
-                        @Const("default_spec") String defaultSpec,
+    public void compute(@Vector(value = "input_json", any = true,
+                                doc = "The JSON document to enrich (one value per row, given "
+                                        + "either as JSON text or as raw JSON bytes). This is the "
+                                        + "data column; the default spec fills in keys absent from "
+                                        + "each row's document. A NULL row yields a NULL result; "
+                                        + "malformed JSON raises an error.") FieldVector in,
+                        @Const(value = "default_spec",
+                               doc = "A constant bare Jolt default specification (NOT wrapped in "
+                                       + "the chainr operation envelope): a tree of keys/values "
+                                       + "supplied only where the input is missing them; existing "
+                                       + "keys are left untouched. Compiled once per batch; an "
+                                       + "invalid spec raises an error.")
+                               String defaultSpec,
                         VarCharVector out) {
         Object spec;
         try {

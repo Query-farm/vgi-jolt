@@ -28,8 +28,9 @@ public final class Main {
         tags.put("vgi.title", "Jolt JSON Transformation");
         tags.put(
                 "vgi.keywords",
-                "jolt, json, transform, transformation, shift, default, chainr, restructure, "
-                        + "reshape, remap, rename, normalize, json validation, bazaarvoice");
+                "[\"jolt\",\"json\",\"transform\",\"transformation\",\"shift\",\"default\","
+                        + "\"chainr\",\"restructure\",\"reshape\",\"remap\",\"rename\","
+                        + "\"normalize\",\"json validation\",\"bazaarvoice\"]");
         tags.put(
                 "vgi.doc_llm",
                 "Apply declarative Bazaarvoice Jolt transformations to JSON documents in SQL: "
@@ -44,8 +45,20 @@ public final class Main {
                 "# jolt\n\n"
                         + "Declarative **JSON->JSON** structural transformation over Apache Arrow, "
                         + "powered by [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt).\n\n"
-                        + "Scalars: `jolt_transform` (full chainr spec), `jolt_shift`, "
-                        + "`jolt_default`, `is_valid_jolt_spec`, `json_valid`.");
+                        + "Jolt restructures JSON with a declarative **spec** instead of "
+                        + "imperative code: a chainr spec is a JSON array of operations "
+                        + "(`shift`, `default`, `remove`, `cardinality`, `sort`, `modify-*-beta`) "
+                        + "applied in order to copy, move, rename, nest, default, and reshape "
+                        + "fields. This worker exposes that capability as DuckDB scalar "
+                        + "functions so you can normalize and remap JSON payloads (API "
+                        + "responses, event streams, nested records) directly in SQL.\n\n"
+                        + "## Functions\n\n"
+                        + "- `jolt_transform(input_json, spec_json)` — apply a full chainr spec.\n"
+                        + "- `jolt_shift(input_json, shift_spec)` — apply one `shift` operation.\n"
+                        + "- `jolt_default(input_json, default_spec)` — apply one `default` "
+                        + "operation.\n"
+                        + "- `is_valid_jolt_spec(spec_json)` — validate a chainr spec.\n"
+                        + "- `json_valid(input_json)` — validate a JSON document.");
         tags.put("vgi.author", "Query.Farm");
         tags.put("vgi.copyright", "Copyright 2026 Query Farm LLC - https://query.farm");
         tags.put("vgi.license", "MIT");
@@ -62,16 +75,13 @@ public final class Main {
         tags.put("vgi.title", "Jolt — main");
         tags.put(
                 "vgi.keywords",
-                "jolt, json, transform, shift, default, jolt_transform, jolt_shift, "
-                        + "jolt_default, is_valid_jolt_spec, json_valid, validation, reshape");
+                "[\"jolt\",\"json\",\"transform\",\"shift\",\"default\",\"jolt_transform\","
+                        + "\"jolt_shift\",\"jolt_default\",\"is_valid_jolt_spec\",\"json_valid\","
+                        + "\"validation\",\"reshape\"]");
         // VGI123 classifying tags — BARE keys (NOT vgi.-namespaced) for faceting.
         tags.put("domain", "data-transformation");
         tags.put("category", "json");
         tags.put("topic", "structural-transformation");
-        tags.put(
-                "vgi.source_url",
-                "https://github.com/Query-farm/vgi-jolt/blob/main/src/main/java/farm/query/vgi/"
-                        + "jolt/Main.java");
         tags.put(
                 "vgi.doc_llm",
                 "JSON transformation and validation functions powered by Bazaarvoice Jolt: apply a "
@@ -79,8 +89,11 @@ public final class Main {
                         + "document, and validate Jolt specs and JSON documents.");
         tags.put(
                 "vgi.doc_md",
-                "Declarative JSON->JSON transformation and validation functions over Apache Arrow, "
-                        + "powered by Bazaarvoice Jolt.");
+                "Declarative JSON->JSON transformation and validation functions over Apache "
+                        + "Arrow, powered by Bazaarvoice Jolt. Apply a full chainr spec or a "
+                        + "single shift/default operation to restructure, rename, nest, and "
+                        + "default JSON fields, and validate Jolt specs and JSON documents — all "
+                        + "from SQL.");
         // VGI506 representative example queries for the schema (plain SQL string).
         tags.put(
                 "vgi.example_queries",

@@ -106,8 +106,19 @@ public final class ShiftFunction extends ScalarFn {
         return Schemas.UTF8;
     }
 
-    public void compute(@Vector(value = "input_json", any = true) FieldVector in,
-                        @Const("shift_spec") String shiftSpec,
+    public void compute(@Vector(value = "input_json", any = true,
+                                doc = "The JSON document to reshape (one value per row, given "
+                                        + "either as JSON text or as raw JSON bytes). This is the "
+                                        + "data column; the shift spec is applied to each row's "
+                                        + "document. A NULL row yields a NULL result; malformed "
+                                        + "JSON raises an error.") FieldVector in,
+                        @Const(value = "shift_spec",
+                               doc = "A constant bare Jolt shift specification (NOT wrapped in the "
+                                       + "{\"operation\":\"shift\",...} chainr envelope): a tree "
+                                       + "mirroring the input where each leaf is the output path "
+                                       + "Jolt copies the matched input value to. Compiled once per "
+                                       + "batch; an invalid spec raises an error.")
+                               String shiftSpec,
                         VarCharVector out) {
         Object spec;
         try {
