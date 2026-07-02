@@ -1,5 +1,6 @@
 package farm.query.vgi.jolt;
 
+import com.bazaarvoice.jolt.JsonUtils;
 import farm.query.vgi.Worker;
 
 /**
@@ -71,18 +72,32 @@ public final class Main {
                         + "columnar execution. To learn the spec language hands-on, try the "
                         + "[interactive Jolt demo](https://jolt-demo.appspot.com/) and read "
                         + "the [Jolt documentation](https://github.com/bazaarvoice/jolt/blob/master/README.md).\n\n"
-                        + "## SQL functions\n\n"
-                        + "- `jolt_transform(input_json, spec_json)` — apply a full Jolt "
-                        + "chainr spec (a JSON array of operations) to a JSON document. The "
-                        + "workhorse for multi-step restructuring.\n"
-                        + "- `jolt_shift(input_json, shift_spec)` — apply a single `shift` "
-                        + "operation to copy, move, rename, and nest fields by path.\n"
-                        + "- `jolt_default(input_json, default_spec)` — apply a single "
-                        + "`default` operation to fill in missing keys with default values.\n"
-                        + "- `is_valid_jolt_spec(spec_json)` — return `true` when a chainr "
-                        + "spec is well-formed and compilable, without throwing.\n"
-                        + "- `json_valid(input_json)` — return `true` when the input is "
-                        + "valid JSON, for guarding transforms against malformed payloads.\n\n"
+                        + "## When to reach for it\n\n"
+                        + "Reach for this worker whenever a JSON document arrives in the "
+                        + "wrong shape for what comes next: keys need renaming, values "
+                        + "need lifting out of (or nesting into) deep structures, arrays "
+                        + "need flattening or grouping, missing fields need sensible "
+                        + "defaults, or a heterogeneous feed needs conforming to one "
+                        + "canonical schema. Because the transformation is a declarative "
+                        + "spec rather than procedural code, the same query adapts to new "
+                        + "shapes by editing the spec — not by rewriting logic.\n\n"
+                        + "## Key concepts\n\n"
+                        + "- **Spec-driven.** You describe the *target* shape; Jolt does "
+                        + "the structural walking. A full **chainr** spec is an ordered "
+                        + "JSON array of operations, applied in sequence.\n"
+                        + "- **Operation vocabulary.** `shift` (path-based copy/move), "
+                        + "`default` (supply absent keys), `remove`, `cardinality` "
+                        + "(single↔list coercion), `sort`, and the `modify-*-beta` "
+                        + "function operators.\n"
+                        + "- **Validation first.** Companion predicates let a pipeline "
+                        + "check that a spec compiles and that a payload is well-formed "
+                        + "JSON before attempting a transform, so bad rows can be filtered "
+                        + "rather than fault the query.\n"
+                        + "- **Columnar & batched.** Each spec is compiled once per Arrow "
+                        + "batch and reused across rows, and the document column is the "
+                        + "data vector while the spec is a query constant.\n\n"
+                        + "Discover the exact functions and their signatures by listing "
+                        + "the `main` schema after attaching.\n\n"
                         + "```sql\n"
                         + "SELECT jolt.jolt_transform(\n"
                         + "  '{\"rating\":{\"primary\":{\"value\":3}}}',\n"
@@ -91,6 +106,10 @@ public final class Main {
                         + "```\n\n"
                         + "Built and maintained by [Query.Farm](https://query.farm) for the "
                         + "[DuckDB](https://duckdb.org/) ecosystem.");
+        // VGI152/VGI920 fixed analyst-task suite for `vgi-lint simulate`. Each task
+        // is graded against a deterministic reference_sql whose output is a single
+        // scalar/boolean (order- and column-name-independent) so grading is stable.
+        tags.put("vgi.agent_test_tasks", agentTestTasks());
         tags.put("vgi.author", "Query.Farm");
         tags.put("vgi.copyright", "Copyright 2026 Query Farm LLC - https://query.farm");
         tags.put("vgi.license", "MIT");
@@ -99,6 +118,80 @@ public final class Main {
                 "vgi.support_policy_url",
                 "https://github.com/Query-farm/vgi-jolt/blob/main/README.md");
         return tags;
+    }
+
+    /**
+     * Build the {@code vgi.agent_test_tasks} JSON suite (VGI152/VGI920). Each task
+     * gives the simulated analyst only a {@code prompt}; grading compares the
+     * analyst's SQL result to {@code reference_sql}. Every reference query returns a
+     * single scalar or boolean, so grading is independent of Jolt output key order
+     * (which Jolt does not guarantee), column aliasing, and row order.
+     */
+    private static String agentTestTasks() {
+        var tasks = new java.util.ArrayList<java.util.Map<String, Object>>();
+        tasks.add(agentTask(
+                "transform_lift_nested_rating",
+                "Given the JSON document {\"rating\":{\"primary\":{\"value\":3}}}, apply a "
+                        + "Jolt transformation that lifts the deeply nested rating value up to a "
+                        + "single top-level key named \"Rating\". Return the resulting JSON "
+                        + "document.",
+                "SELECT jolt.main.jolt_transform("
+                        + "'{\"rating\":{\"primary\":{\"value\":3}}}', "
+                        + "'[{\"operation\":\"shift\",\"spec\":"
+                        + "{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]')",
+                "The result is the JSON document {\"Rating\":3}."));
+        tasks.add(agentTask(
+                "shift_rename_into_name_object",
+                "Given the JSON document {\"first\":\"Ada\",\"last\":\"Lovelace\"}, use a "
+                        + "single Jolt shift operation to move the \"first\" field to name.given "
+                        + "and the \"last\" field to name.family. Return the resulting JSON "
+                        + "document.",
+                "SELECT jolt.main.jolt_shift("
+                        + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
+                        + "'{\"first\":\"name.given\",\"last\":\"name.family\"}')",
+                "The result nests the two fields under a name object: "
+                        + "{\"name\":{\"given\":\"Ada\",\"family\":\"Lovelace\"}}."));
+        tasks.add(agentTask(
+                "default_supply_currency",
+                "Given the JSON document {\"name\":\"widget\"}, use a Jolt default operation "
+                        + "to supply the value \"USD\" for a \"currency\" key only when that key "
+                        + "is absent from the input. Return the resulting JSON document.",
+                "SELECT jolt.main.jolt_default("
+                        + "'{\"name\":\"widget\"}', '{\"currency\":\"USD\"}')",
+                "The result adds only the missing currency key: "
+                        + "{\"name\":\"widget\",\"currency\":\"USD\"}."));
+        tasks.add(agentTask(
+                "validate_jolt_spec",
+                "Determine whether the string "
+                        + "[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}] is a valid "
+                        + "Bazaarvoice Jolt chainr specification. Return a single boolean.",
+                "SELECT jolt.main.is_valid_jolt_spec("
+                        + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]')",
+                "The string parses and compiles as a Jolt chainr spec, so the result is "
+                        + "true."));
+        tasks.add(agentTask(
+                "validate_json_document",
+                "Using this worker, test whether the literal text value "
+                        + "not valid json is a well-formed JSON document. Pass that text "
+                        + "straight to the worker's JSON-validity check and return the single "
+                        + "boolean it produces.",
+                "SELECT jolt.main.json_valid('not valid json')",
+                "The text is not parseable JSON, so the validity check returns false."));
+        return JsonUtils.toJsonString(tasks);
+    }
+
+    private static java.util.Map<String, Object> agentTask(
+            String name, String prompt, String referenceSql, String successCriteria) {
+        var t = new java.util.LinkedHashMap<String, Object>();
+        t.put("name", name);
+        t.put("prompt", prompt);
+        t.put("reference_sql", referenceSql);
+        t.put("success_criteria", successCriteria);
+        // Grade on VALUES only, ignoring column aliases and row order — every
+        // reference returns a single cell, so both relaxations are safe.
+        t.put("ignore_column_names", true);
+        t.put("unordered", true);
+        return t;
     }
 
     /** Schema-level metadata tags for the single {@code main} schema. */
@@ -121,11 +214,37 @@ public final class Main {
                         + "document, and validate Jolt specs and JSON documents.");
         tags.put(
                 "vgi.doc_md",
-                "Declarative JSON->JSON transformation and validation functions over Apache "
-                        + "Arrow, powered by Bazaarvoice Jolt. Apply a full chainr spec or a "
-                        + "single shift/default operation to restructure, rename, nest, and "
-                        + "default JSON fields, and validate Jolt specs and JSON documents — all "
-                        + "from SQL.");
+                "# Jolt transformation & validation\n\n"
+                        + "Declarative JSON→JSON transformation and validation over Apache "
+                        + "Arrow, powered by [Bazaarvoice "
+                        + "Jolt](https://github.com/bazaarvoice/jolt). This schema groups the "
+                        + "worker's SQL functions for reshaping JSON documents and for "
+                        + "guarding those transforms against malformed input.\n\n"
+                        + "## What lives here\n\n"
+                        + "- **Transformation** — reshape, rename, nest, flatten, and default "
+                        + "JSON fields by describing the target shape as a Jolt spec instead "
+                        + "of writing imperative traversal code.\n"
+                        + "- **Validation** — cheap, never-throwing predicates that check a "
+                        + "spec compiles and a payload is well-formed JSON, so a pipeline can "
+                        + "filter bad rows before transforming.\n\n"
+                        + "## When to use it\n\n"
+                        + "Use it to normalize messy API responses, conform event-stream "
+                        + "payloads to a canonical schema, and restructure nested records for "
+                        + "downstream analytics — all inside DuckDB, with no external ETL "
+                        + "step. Attach the worker and list this schema to discover the exact "
+                        + "functions and their signatures.");
+        // VGI413 category registry: ordered array of {name, title?, description?}.
+        // Each function carries a vgi.category naming one of these slugs.
+        tags.put(
+                "vgi.categories",
+                "[{\"name\":\"transformation\",\"title\":\"Transformation\","
+                        + "\"description\":\"Reshape, rename, nest, flatten, and default JSON "
+                        + "documents by applying a Bazaarvoice Jolt spec — a full chainr or a "
+                        + "single shift/default operation.\"},"
+                        + "{\"name\":\"validation\",\"title\":\"Validation\","
+                        + "\"description\":\"Cheap, never-throwing predicates that check a Jolt "
+                        + "spec compiles and that a payload is well-formed JSON, so a pipeline "
+                        + "can guard transforms and filter bad rows.\"}]");
         // VGI506 representative example queries for the schema (plain SQL string).
         tags.put(
                 "vgi.example_queries",

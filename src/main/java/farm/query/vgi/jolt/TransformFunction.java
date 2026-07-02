@@ -90,6 +90,7 @@ public final class TransformFunction extends ScalarFn {
                         "jolt, transform, chainr, json, restructure, reshape, remap, rename, "
                                 + "shift, default, remove, cardinality, modify, json transformation",
                         "TransformFunction.java"))
+                .withTag("vgi.category", "transformation")
                 .withTag("vgi.example_queries",
                         JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
     }

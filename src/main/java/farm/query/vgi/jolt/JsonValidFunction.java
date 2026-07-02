@@ -61,6 +61,7 @@ public final class JsonValidFunction extends ScalarFn {
                         "json, valid, validate, well-formed, parse, check, guard, json_valid, "
                                 + "is json",
                         "JsonValidFunction.java"))
+                .withTag("vgi.category", "validation")
                 .withTag("vgi.example_queries",
                         JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
     }

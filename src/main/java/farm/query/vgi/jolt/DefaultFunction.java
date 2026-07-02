@@ -79,6 +79,7 @@ public final class DefaultFunction extends ScalarFn {
                         "jolt, default, defaultr, json, fill, fallback, supply defaults, "
                                 + "normalize, ensure keys, json default",
                         "DefaultFunction.java"))
+                .withTag("vgi.category", "transformation")
                 .withTag("vgi.example_queries",
                         JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
     }

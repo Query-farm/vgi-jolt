@@ -67,6 +67,7 @@ public final class IsValidSpecFunction extends ScalarFn {
                         "jolt, validate, valid, spec, chainr, check, lint, json, "
                                 + "is_valid_jolt_spec, well-formed",
                         "IsValidSpecFunction.java"))
+                .withTag("vgi.category", "validation")
                 .withTag("vgi.example_queries",
                         JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
     }

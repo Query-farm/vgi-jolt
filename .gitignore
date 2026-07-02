@@ -3,3 +3,6 @@ build/
 vendor/
 *.class
 duckdb_unittest_tempdir/
+
+# vgi-lint --ai verdict caches (doc-review + agent-check/simulate)
+.vgi-*-cache.json

@@ -79,6 +79,7 @@ public final class ShiftFunction extends ScalarFn {
                         "jolt, shift, shiftr, json, copy, move, rename, nest, restructure, "
                                 + "path, mapping, json shift",
                         "ShiftFunction.java"))
+                .withTag("vgi.category", "transformation")
                 .withTag("vgi.example_queries",
                         JoltEngine.exampleQueriesTag(exampleDesc, exampleSql))
                 .withTag("vgi.executable_examples", JoltEngine.executableExamplesTag(
