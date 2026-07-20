@@ -36,13 +36,13 @@ public final class JsonValidFunction extends ScalarFn {
                 .withTags(Meta.objectTags(
                         "Validate JSON Document String",
                         "Test whether a string is a well-formed JSON document, returning a "
-                                + "BOOLEAN.\n\n"
+                                + "`BOOLEAN`.\n\n"
                                 + "Returns `true` when the input parses via the Jolt JSON reader "
                                 + "(`JsonUtils.jsonToObject`), `false` otherwise. It never raises "
                                 + "an error, making it a safe companion guard for the transform "
                                 + "scalars (`jolt_transform`, `jolt_shift`, `jolt_default`), "
                                 + "which DO error on malformed input.\n\n"
-                                + "**Input:** `input_json` (VARCHAR/BLOB). **Output:** BOOLEAN, "
+                                + "**Input:** `input_json` (`VARCHAR`/`BLOB`). **Output:** `BOOLEAN`, "
                                 + "or NULL for a NULL input row.",
                         "# json_valid\n\n"
                                 + "Return whether a string parses as a well-formed JSON "

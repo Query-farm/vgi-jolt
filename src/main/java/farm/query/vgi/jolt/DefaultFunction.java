@@ -52,10 +52,10 @@ public final class DefaultFunction extends ScalarFn {
                                 + "Use it to normalize documents to a known shape (guaranteeing "
                                 + "fields exist, supplying fallback defaults) before downstream "
                                 + "processing.\n\n"
-                                + "**Inputs:** `input_json` (VARCHAR/BLOB JSON, the data vector) "
+                                + "**Inputs:** `input_json` (`VARCHAR`/`BLOB` JSON, the data vector) "
                                 + "and `default_spec` (a constant **bare** default spec object). "
                                 + "The `Defaultr` is built once per batch.\n\n"
-                                + "**Output:** the enriched document as a JSON VARCHAR. NULL "
+                                + "**Output:** the enriched document as a JSON `VARCHAR`. NULL "
                                 + "input row yields NULL; malformed input JSON or default spec "
                                 + "raises a DuckDB error.",
                         "# jolt_default\n\n"
@@ -73,7 +73,7 @@ public final class DefaultFunction extends ScalarFn {
                                 + "gaps. The spec is the **bare** default spec object, not the "
                                 + "chainr operation envelope.\n\n"
                                 + "## Notes\n\n"
-                                + "- Returns VARCHAR JSON; output key order is not guaranteed.\n"
+                                + "- Returns `VARCHAR` JSON; output key order is not guaranteed.\n"
                                 + "- NULL input row maps to a NULL result.\n"
                                 + "- Malformed input JSON or default spec raises an error.",
                         "jolt, default, defaultr, json, fill, fallback, supply defaults, "

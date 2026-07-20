@@ -96,8 +96,8 @@ public final class Main {
                         + "- **Columnar & batched.** Each spec is compiled once per Arrow "
                         + "batch and reused across rows, and the document column is the "
                         + "data vector while the spec is a query constant.\n\n"
-                        + "Discover the exact functions and their signatures by listing "
-                        + "the `main` schema after attaching.\n\n"
+                        + "A worked example — lift a deeply nested value up to a "
+                        + "top-level key with a full chainr spec:\n\n"
                         + "```sql\n"
                         + "SELECT jolt.jolt_transform(\n"
                         + "  '{\"rating\":{\"primary\":{\"value\":3}}}',\n"
@@ -231,8 +231,9 @@ public final class Main {
                         + "Use it to normalize messy API responses, conform event-stream "
                         + "payloads to a canonical schema, and restructure nested records for "
                         + "downstream analytics — all inside DuckDB, with no external ETL "
-                        + "step. Attach the worker and list this schema to discover the exact "
-                        + "functions and their signatures.");
+                        + "step. Transforms raise on malformed input, while the validation "
+                        + "predicates never throw — pair them to guard a pipeline and filter "
+                        + "bad rows before reshaping.");
         // VGI413 category registry: ordered array of {name, title?, description?}.
         // Each function carries a vgi.category naming one of these slugs.
         tags.put(
@@ -248,19 +249,28 @@ public final class Main {
         // VGI506 representative example queries for the schema (plain SQL string).
         tags.put(
                 "vgi.example_queries",
-                "SELECT jolt.main.jolt_transform("
-                        + "'{\"rating\":{\"primary\":{\"value\":3}}}', "
-                        + "'[{\"operation\":\"shift\",\"spec\":"
-                        + "{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]');\n"
-                        + "SELECT jolt.main.jolt_shift("
-                        + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
-                        + "'{\"first\":\"name.given\",\"last\":\"name.family\"}');\n"
-                        + "SELECT jolt.main.jolt_default("
-                        + "'{\"name\":\"widget\"}', "
-                        + "'{\"inStock\":true,\"currency\":\"USD\"}');\n"
-                        + "SELECT jolt.main.is_valid_jolt_spec("
-                        + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]');\n"
-                        + "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}');");
+                JoltEngine.executableExamplesTag(
+                        "Apply a full chainr spec to lift a deeply nested rating value up "
+                                + "to a top-level Rating key.",
+                        "SELECT jolt.main.jolt_transform("
+                                + "'{\"rating\":{\"primary\":{\"value\":3}}}', "
+                                + "'[{\"operation\":\"shift\",\"spec\":"
+                                + "{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]');",
+                        "Rename and nest flat keys into a name object with a single shift "
+                                + "operation.",
+                        "SELECT jolt.main.jolt_shift("
+                                + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
+                                + "'{\"first\":\"name.given\",\"last\":\"name.family\"}');",
+                        "Supply default values for keys absent from the input document.",
+                        "SELECT jolt.main.jolt_default("
+                                + "'{\"name\":\"widget\"}', "
+                                + "'{\"inStock\":true,\"currency\":\"USD\"}');",
+                        "Guard a pipeline by checking that a string is a well-formed Jolt "
+                                + "chainr spec before transforming.",
+                        "SELECT jolt.main.is_valid_jolt_spec("
+                                + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]');",
+                        "Check that a payload is well-formed JSON before reshaping it.",
+                        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}');"));
         return tags;
     }
 

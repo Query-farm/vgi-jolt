@@ -52,11 +52,11 @@ public final class ShiftFunction extends ScalarFn {
                                 + "**output path** telling Jolt where to copy the matched input "
                                 + "value. This is the convenience entry point for the single "
                                 + "shift case; for multi-step pipelines use `jolt_transform`.\n\n"
-                                + "**Inputs:** `input_json` (VARCHAR/BLOB JSON, the data vector) "
+                                + "**Inputs:** `input_json` (`VARCHAR`/`BLOB` JSON, the data vector) "
                                 + "and `shift_spec` (a constant **bare** shift spec object, NOT "
                                 + "wrapped in the `{\"operation\":\"shift\",...}` chainr "
                                 + "envelope). The `Shiftr` is built once per batch.\n\n"
-                                + "**Output:** the reshaped document as a JSON VARCHAR. NULL "
+                                + "**Output:** the reshaped document as a JSON `VARCHAR`. NULL "
                                 + "input row yields NULL; malformed input JSON or shift spec "
                                 + "raises a DuckDB error.",
                         "# jolt_shift\n\n"
@@ -73,7 +73,7 @@ public final class ShiftFunction extends ScalarFn {
                                 + "operation envelope. Wildcards (`*`), array indexing, and `@`/"
                                 + "`#`/`$` references follow standard Jolt shift semantics.\n\n"
                                 + "## Notes\n\n"
-                                + "- Returns VARCHAR JSON; output key order is not guaranteed.\n"
+                                + "- Returns `VARCHAR` JSON; output key order is not guaranteed.\n"
                                 + "- NULL input row maps to a NULL result.\n"
                                 + "- Malformed input JSON or shift spec raises an error.",
                         "jolt, shift, shiftr, json, copy, move, rename, nest, restructure, "

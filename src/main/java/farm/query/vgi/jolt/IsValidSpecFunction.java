@@ -41,14 +41,14 @@ public final class IsValidSpecFunction extends ScalarFn {
                         "Validate Jolt Spec String",
                         "Test whether a string is a valid [Bazaarvoice "
                                 + "Jolt](https://github.com/bazaarvoice/jolt) **chainr** spec, "
-                                + "returning a BOOLEAN.\n\n"
+                                + "returning a `BOOLEAN`.\n\n"
                                 + "Returns `true` when the input both parses as JSON and compiles "
                                 + "via `Chainr.fromSpec` (i.e. it is a JSON array of recognized "
                                 + "operation entries). Returns `false` for malformed JSON, a "
                                 + "non-array, or an unknown/invalid operation &mdash; it never "
                                 + "raises an error, so it is safe as a guard or filter before "
                                 + "calling `jolt_transform`.\n\n"
-                                + "**Input:** `spec_json` (VARCHAR/BLOB). **Output:** BOOLEAN, or "
+                                + "**Input:** `spec_json` (`VARCHAR`/`BLOB`). **Output:** `BOOLEAN`, or "
                                 + "NULL for a NULL input row.",
                         "# is_valid_jolt_spec\n\n"
                                 + "Return whether a string compiles as a Jolt chainr spec.\n\n"
