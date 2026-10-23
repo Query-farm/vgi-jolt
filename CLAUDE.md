@@ -17,7 +17,7 @@ functions** — every function is a scalar, so this worker does not use a
 
 The worker itself is **MIT** (see `LICENSE`). Runtime dependencies:
 
-- VGI SDK: `farm.query:vgi:0.6.0` (+ `farm.query:vgirpc:0.10.2`, declared
+- VGI SDK: `farm.query:vgi:0.43.0` (+ `farm.query:vgirpc:0.33.1`, declared
   explicitly since the code imports `farm.query.vgirpc.*`).
 - **Bazaarvoice Jolt**: `com.bazaarvoice.jolt:jolt-core:0.1.8` +
   `:json-utils:0.1.8` — **Apache License 2.0**, a permissive license compatible
@@ -47,7 +47,7 @@ boolean. JSON I/O is `JsonUtils.jsonToObject` / `toJsonString` from json-utils.
 ## Layout
 
 ```
-build.gradle.kts / settings.gradle.kts / gradle.properties   Gradle, shadow plugin (com.gradleup.shadow 9.4.2)
+build.gradle.kts / settings.gradle.kts / gradle.properties   Gradle, shadow plugin (com.gradleup.shadow 9.6.1, Gradle 9.8.2 wrapper)
 src/main/java/farm/query/vgi/jolt/
   Main.java                  Worker.builder().catalogName("jolt")...registerScalar x5
   JoltEngine.java            the Jolt wrapper (transform / shift / default / validators)
@@ -60,6 +60,8 @@ src/main/java/farm/query/vgi/jolt/
 src/test/java/...            JUnit: JoltEngineTest (semantic JSON tree compare via Jackson),
                              ScalarFunctionsTest (drives each ScalarFn.compute directly)
 test/sql/scalars.test        haybarn-unittest E2E (inline JSON literals)
+vgi-agent-tests.yaml         private vgi-lint agent-task graders (VGI416: the published
+                             vgi.agent_test_tasks tag carries only name + prompt)
 Makefile                     build / test-unit / test-sql / test / clean
 ```
 

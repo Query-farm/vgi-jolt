@@ -2,7 +2,7 @@ plugins {
     java
     application
     // Fat/shaded JAR: `./gradlew shadowJar` -> build/libs/vgi-jolt-<ver>-all.jar
-    id("com.gradleup.shadow") version "9.4.3"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group = "farm.query"
@@ -37,8 +37,8 @@ dependencies {
     // VGI Java SDK from Maven Central. `vgi` is the worker/catalog API (published
     // as farm.query:vgi) and pulls in farm.query:vgirpc transitively; vgirpc is
     // declared explicitly because the code imports farm.query.vgirpc.* directly.
-    implementation("farm.query:vgi:0.19.0")
-    implementation("farm.query:vgirpc:0.16.0")
+    implementation("farm.query:vgi:0.43.0")
+    implementation("farm.query:vgirpc:0.33.1")
 
     // Bazaarvoice Jolt — declarative JSON->JSON structural transformation
     // (Apache-2.0). jolt-core declares json-utils as `test` scope in its POM, so
@@ -50,9 +50,9 @@ dependencies {
     // slf4j-simple sends ALL log output to System.err. The stdio Arrow-IPC
     // transport owns System.out, so anything written to stdout corrupts the
     // stream and hangs the worker; routing logging to stderr keeps stdout clean.
-    implementation("org.slf4j:slf4j-simple:2.0.18")
+    implementation("org.slf4j:slf4j-simple:2.0.20")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:6.1.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

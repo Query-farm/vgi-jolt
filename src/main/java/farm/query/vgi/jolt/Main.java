@@ -106,9 +106,8 @@ public final class Main {
                         + "```\n\n"
                         + "Built and maintained by [Query.Farm](https://query.farm) for the "
                         + "[DuckDB](https://duckdb.org/) ecosystem.");
-        // VGI152/VGI920 fixed analyst-task suite for `vgi-lint simulate`. Each task
-        // is graded against a deterministic reference_sql whose output is a single
-        // scalar/boolean (order- and column-name-independent) so grading is stable.
+        // VGI152/VGI920 fixed analyst-task suite for `vgi-lint simulate`: names +
+        // prompts only; the private graders live in vgi-agent-tests.yaml (VGI416).
         tags.put("vgi.agent_test_tasks", agentTestTasks());
         tags.put("vgi.author", "Query.Farm");
         tags.put("vgi.copyright", "Copyright 2026 Query Farm LLC - https://query.farm");
@@ -121,11 +120,10 @@ public final class Main {
     }
 
     /**
-     * Build the {@code vgi.agent_test_tasks} JSON suite (VGI152/VGI920). Each task
-     * gives the simulated analyst only a {@code prompt}; grading compares the
-     * analyst's SQL result to {@code reference_sql}. Every reference query returns a
-     * single scalar or boolean, so grading is independent of Jolt output key order
-     * (which Jolt does not guarantee), column aliasing, and row order.
+     * Build the {@code vgi.agent_test_tasks} JSON suite (VGI152/VGI920). Only the
+     * public {@code name} + {@code prompt} are published (VGI416); the private
+     * grader fields ({@code reference_sql}, {@code success_criteria}, ...) live in
+     * the {@code vgi-agent-tests.yaml} sidecar at the repo root, keyed by task name.
      */
     private static String agentTestTasks() {
         var tasks = new java.util.ArrayList<java.util.Map<String, Object>>();
@@ -134,63 +132,36 @@ public final class Main {
                 "Given the JSON document {\"rating\":{\"primary\":{\"value\":3}}}, apply a "
                         + "Jolt transformation that lifts the deeply nested rating value up to a "
                         + "single top-level key named \"Rating\". Return the resulting JSON "
-                        + "document.",
-                "SELECT jolt.main.jolt_transform("
-                        + "'{\"rating\":{\"primary\":{\"value\":3}}}', "
-                        + "'[{\"operation\":\"shift\",\"spec\":"
-                        + "{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]')",
-                "The result is the JSON document {\"Rating\":3}."));
+                        + "document."));
         tasks.add(agentTask(
                 "shift_rename_into_name_object",
                 "Given the JSON document {\"first\":\"Ada\",\"last\":\"Lovelace\"}, use a "
                         + "single Jolt shift operation to move the \"first\" field to name.given "
                         + "and the \"last\" field to name.family. Return the resulting JSON "
-                        + "document.",
-                "SELECT jolt.main.jolt_shift("
-                        + "'{\"first\":\"Ada\",\"last\":\"Lovelace\"}', "
-                        + "'{\"first\":\"name.given\",\"last\":\"name.family\"}')",
-                "The result nests the two fields under a name object: "
-                        + "{\"name\":{\"given\":\"Ada\",\"family\":\"Lovelace\"}}."));
+                        + "document."));
         tasks.add(agentTask(
                 "default_supply_currency",
                 "Given the JSON document {\"name\":\"widget\"}, use a Jolt default operation "
                         + "to supply the value \"USD\" for a \"currency\" key only when that key "
-                        + "is absent from the input. Return the resulting JSON document.",
-                "SELECT jolt.main.jolt_default("
-                        + "'{\"name\":\"widget\"}', '{\"currency\":\"USD\"}')",
-                "The result adds only the missing currency key: "
-                        + "{\"name\":\"widget\",\"currency\":\"USD\"}."));
+                        + "is absent from the input. Return the resulting JSON document."));
         tasks.add(agentTask(
                 "validate_jolt_spec",
                 "Determine whether the string "
                         + "[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}] is a valid "
-                        + "Bazaarvoice Jolt chainr specification. Return a single boolean.",
-                "SELECT jolt.main.is_valid_jolt_spec("
-                        + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]')",
-                "The string parses and compiles as a Jolt chainr spec, so the result is "
-                        + "true."));
+                        + "Bazaarvoice Jolt chainr specification. Return a single boolean."));
         tasks.add(agentTask(
                 "validate_json_document",
                 "Using this worker, test whether the literal text value "
                         + "not valid json is a well-formed JSON document. Pass that text "
                         + "straight to the worker's JSON-validity check and return the single "
-                        + "boolean it produces.",
-                "SELECT jolt.main.json_valid('not valid json')",
-                "The text is not parseable JSON, so the validity check returns false."));
+                        + "boolean it produces."));
         return JsonUtils.toJsonString(tasks);
     }
 
-    private static java.util.Map<String, Object> agentTask(
-            String name, String prompt, String referenceSql, String successCriteria) {
+    private static java.util.Map<String, Object> agentTask(String name, String prompt) {
         var t = new java.util.LinkedHashMap<String, Object>();
         t.put("name", name);
         t.put("prompt", prompt);
-        t.put("reference_sql", referenceSql);
-        t.put("success_criteria", successCriteria);
-        // Grade on VALUES only, ignoring column aliases and row order — every
-        // reference returns a single cell, so both relaxations are safe.
-        t.put("ignore_column_names", true);
-        t.put("unordered", true);
         return t;
     }
 

@@ -1,0 +1,43 @@
+# Private grader sidecar for `vgi-lint simulate` (and `lint`'s VGI520 coverage).
+# The worker publishes only task names + prompts in `vgi.agent_test_tasks`
+# (Main.agentTestTasks); these grader fields are keyed by that name and never
+# sent to the analyst agent (VGI416).
+#
+# Every reference_sql returns a single scalar or boolean, so grading with
+# ignore_column_names + unordered is independent of Jolt output key order (which
+# Jolt does not guarantee), column aliasing, and row order.
+tasks:
+  - name: transform_lift_nested_rating
+    reference_sql: |-
+      SELECT jolt.main.jolt_transform('{"rating":{"primary":{"value":3}}}', '[{"operation":"shift","spec":{"rating":{"primary":{"value":"Rating"}}}}]')
+    success_criteria: 'The result is the JSON document {"Rating":3}.'
+    ignore_column_names: true
+    unordered: true
+
+  - name: shift_rename_into_name_object
+    reference_sql: |-
+      SELECT jolt.main.jolt_shift('{"first":"Ada","last":"Lovelace"}', '{"first":"name.given","last":"name.family"}')
+    success_criteria: 'The result nests the two fields under a name object: {"name":{"given":"Ada","family":"Lovelace"}}.'
+    ignore_column_names: true
+    unordered: true
+
+  - name: default_supply_currency
+    reference_sql: |-
+      SELECT jolt.main.jolt_default('{"name":"widget"}', '{"currency":"USD"}')
+    success_criteria: 'The result adds only the missing currency key: {"name":"widget","currency":"USD"}.'
+    ignore_column_names: true
+    unordered: true
+
+  - name: validate_jolt_spec
+    reference_sql: |-
+      SELECT jolt.main.is_valid_jolt_spec('[{"operation":"shift","spec":{"a":"b"}}]')
+    success_criteria: The string parses and compiles as a Jolt chainr spec, so the result is true.
+    ignore_column_names: true
+    unordered: true
+
+  - name: validate_json_document
+    reference_sql: |-
+      SELECT jolt.main.json_valid('not valid json')
+    success_criteria: The text is not parseable JSON, so the validity check returns false.
+    ignore_column_names: true
+    unordered: true
