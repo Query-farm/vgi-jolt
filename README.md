@@ -92,8 +92,10 @@ make test          # both
 make build         # fat JAR -> build/libs/vgi-jolt-<ver>-all.jar
 ```
 
-The SQL E2E runner is `haybarn-unittest` (`uv tool install haybarn-unittest`, then
-`export PATH="$HOME/.local/bin:$PATH"`).
+The SQL E2E runner is `haybarn-unittest` 2.0
+(`uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'`, then
+`export PATH="$HOME/.local/bin:$PATH"`). This worker speaks VGI protocol
+**vgi.v3 / 3.1**, which only haybarn 2.0's community `vgi` extension accepts.
 
 The VGI Java SDK (`farm.query:vgi`, `farm.query:vgirpc`) and Jolt
 (`com.bazaarvoice.jolt:jolt-core`, `:json-utils`) all resolve from **Maven

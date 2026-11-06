@@ -37,8 +37,8 @@ dependencies {
     // VGI Java SDK from Maven Central. `vgi` is the worker/catalog API (published
     // as farm.query:vgi) and pulls in farm.query:vgirpc transitively; vgirpc is
     // declared explicitly because the code imports farm.query.vgirpc.* directly.
-    implementation("farm.query:vgi:0.43.0")
-    implementation("farm.query:vgirpc:0.33.1")
+    implementation("farm.query:vgi:0.46.0")
+    implementation("farm.query:vgirpc:0.33.3")
 
     // Bazaarvoice Jolt — declarative JSON->JSON structural transformation
     // (Apache-2.0). jolt-core declares json-utils as `test` scope in its POM, so

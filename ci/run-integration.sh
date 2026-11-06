@@ -176,21 +176,27 @@ cd "$STAGE"
 # client). A miss here is only a warning — but it is what provisions the signed
 # extensions so each test file's explicit `LOAD vgi;` / injected `LOAD httpfs;`
 # succeed on a clean runner. httpfs is harmless for the subprocess/unix legs.
+# FORCE INSTALL replaces a stale cached copy (haybarn never replaces one on a
+# plain INSTALL, and a cached extension from an older 2.0 rc can speak an older
+# vgi protocol or carry a stale ABI).
+#
+# haybarn-unittest 2.0 isolates $HOME per run, so without --keep-home the
+# extensions installed here are "not found" by the suite run below.
 echo "Warming the extension cache (vgi from community, httpfs from core) ..."
 mkdir -p "$STAGE/test"
 cat > "$STAGE/test/_warm.test" <<'EOF'
 # name: test/_warm.test
 # group: [warm]
 statement ok
-INSTALL vgi FROM community;
+FORCE INSTALL vgi FROM community;
 
 statement ok
-INSTALL httpfs FROM core;
+FORCE INSTALL httpfs FROM core;
 
 statement ok
-INSTALL json FROM core;
+FORCE INSTALL json FROM core;
 EOF
-"$HAYBARN_UNITTEST" "test/_warm.test" >/dev/null 2>&1 || echo "::warning::extension warm step did not fully succeed"
+"$HAYBARN_UNITTEST" --keep-home "test/_warm.test" >/dev/null 2>&1 || echo "::warning::extension warm step did not fully succeed"
 rm -f "$STAGE/test/_warm.test"
 
 # Run the whole suite in one invocation, streaming the runner's native
@@ -203,7 +209,7 @@ rm -f "$STAGE/test/_warm.test"
 echo "Running suite (transport: $TRANSPORT, worker: $VGI_JOLT_WORKER) ..."
 OUT="$STAGE/suite.out"
 set +e
-"$HAYBARN_UNITTEST" "test/sql/*" 2>&1 | tee "$OUT"
+"$HAYBARN_UNITTEST" --keep-home "test/sql/*" 2>&1 | tee "$OUT"
 status=${PIPESTATUS[0]}
 set -e
 if [ "$status" -ne 0 ]; then
