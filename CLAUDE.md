@@ -17,7 +17,7 @@ functions** — every function is a scalar, so this worker does not use a
 
 The worker itself is **MIT** (see `LICENSE`). Runtime dependencies:
 
-- VGI SDK: `farm.query:vgi:0.46.0` (+ `farm.query:vgirpc:0.33.3`, declared
+- VGI SDK: `farm.query:vgi:0.47.0` (+ `farm.query:vgirpc:0.33.3`, declared
   explicitly since the code imports `farm.query.vgirpc.*`).
 - **Bazaarvoice Jolt**: `com.bazaarvoice.jolt:jolt-core:0.1.8` +
   `:json-utils:0.1.8` — **Apache License 2.0**, a permissive license compatible
@@ -85,7 +85,7 @@ Makefile                     build / test-unit / test-sql / test / clean
    needs it); the input/spec args are `any`-typed so a VARCHAR binds from SQL.
 6. **`haybarn-unittest` skips `require vgi`** — the `.test` file uses explicit
    `LOAD vgi;`, `require-env VGI_JOLT_WORKER`, and `# group: [vgi_jolt]`.
-7. **Protocol vgi.v3 / 3.1 needs haybarn 2.0.** The SDK speaks vgi.v3 3.1.0;
+7. **Protocol vgi.v3 / 3.2 needs haybarn 2.0.** The SDK speaks vgi.v3 3.2.0;
    only the haybarn 2.0 community `vgi` extension attaches it (1.5 cannot).
    haybarn-unittest 2.0 isolates `$HOME`, so every invocation passes
    `--keep-home` (otherwise the installed `vgi` extension is "not found"). CI
