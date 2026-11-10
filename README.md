@@ -18,7 +18,7 @@ renaming/moving keys, supplying defaults, removing fields, and normalizing
 cardinality, all declaratively (no code).
 
 ```sql
-ATTACH 'jolt' (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.2.0.jar');
+ATTACH 'jolt' (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.3.0.jar');
 
 -- Remap a nested value to a top-level key with a full Jolt spec (a "chainr").
 SELECT jolt.jolt_transform(
@@ -32,7 +32,7 @@ SELECT jolt.jolt_transform(
 Every [GitHub release](https://github.com/Query-farm/vgi-jolt/releases) ships a self-contained worker jar. It needs Java 21 or newer. Download it:
 
 ```sh
-curl -LO https://github.com/Query-farm/vgi-jolt/releases/download/v0.2.0/vgi-jolt-v0.2.0.jar
+curl -LO https://github.com/Query-farm/vgi-jolt/releases/download/v0.3.0/vgi-jolt-v0.3.0.jar
 ```
 
 then attach it from DuckDB (run from the directory holding the jar, or use its absolute path):
@@ -41,7 +41,7 @@ then attach it from DuckDB (run from the directory holding the jar, or use its a
 INSTALL vgi FROM community;
 LOAD vgi;
 
-ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.2.0.jar');
+ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.3.0.jar');
 
 -- Apply a full chainr spec to lift a deeply nested rating value up to a top-level Rating
 -- key.
@@ -56,7 +56,7 @@ SELECT jolt.main.jolt_shift('{"first":"Ada","last":"Lovelace"}', '{"first":"name
 - **Docker** (the image bundles the worker and a Java runtime):
 
   ```sql
-  ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-jolt:0.2.0');
+  ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-jolt:0.3.0');
   ```
 
 ### Build from source
