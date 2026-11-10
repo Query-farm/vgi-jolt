@@ -28,6 +28,9 @@ public final class Main {
         var tags = new java.util.LinkedHashMap<String, String>();
         tags.put("vgi.title", "Jolt JSON Transformation");
         tags.put(
+                "vgi.subtitle",
+                "Reshape, rename, and validate JSON documents with declarative Bazaarvoice Jolt specs.");
+        tags.put(
                 "vgi.keywords",
                 "[\"jolt\",\"json\",\"transform\",\"transformation\",\"shift\",\"default\","
                         + "\"chainr\",\"restructure\",\"reshape\",\"remap\",\"rename\","
@@ -168,7 +171,7 @@ public final class Main {
     /** Schema-level metadata tags for the single {@code main} schema. */
     private static java.util.Map<String, String> schemaTags() {
         var tags = new java.util.LinkedHashMap<String, String>();
-        tags.put("vgi.title", "Jolt — main");
+        tags.put("vgi.title", "Jolt Functions");
         tags.put(
                 "vgi.keywords",
                 "[\"jolt\",\"json\",\"transform\",\"shift\",\"default\",\"jolt_transform\","
