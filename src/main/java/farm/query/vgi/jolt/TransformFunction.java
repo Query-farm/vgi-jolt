@@ -43,10 +43,11 @@ public final class TransformFunction extends ScalarFn {
         String exampleDesc =
                 "Apply a full Jolt chainr spec (a single shift operation) to lift a "
                         + "deeply nested value up to a top-level Rating key.";
+        var examples = java.util.List.of(
+                new FunctionExample(exampleSql, exampleDesc, null));
         return FunctionMetadata.describe(description())
                 .withCategories("jolt", "json", "transform")
-                .withExamples(java.util.List.of(
-                        new FunctionExample(exampleSql, exampleDesc, null)))
+                .withExamples(examples)
                 .withTags(Meta.objectTags(
                         "Apply Jolt Transformation Spec",
                         "Apply a full [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) "
@@ -92,7 +93,7 @@ public final class TransformFunction extends ScalarFn {
                         "TransformFunction.java"))
                 .withTag("vgi.category", "transformation")
                 .withTag("vgi.example_queries",
-                        JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
+                        JoltEngine.exampleQueriesTag(examples));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

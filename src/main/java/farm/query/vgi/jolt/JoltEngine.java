@@ -135,16 +135,21 @@ public final class JoltEngine {
     }
 
     /**
-     * Build the JSON value for a {@code vgi.example_queries} function tag from a
-     * single {@code (description, sql)} example. The result is a JSON array of one
-     * {@code {"description","sql"}} object (the shape the linter decodes); JSON
+     * Build the JSON value for a {@code vgi.example_queries} function tag from the
+     * function's example list. The result is a JSON array of
+     * {@code {"description","sql"}} objects (the shape the linter decodes); JSON
      * escaping of the quote-heavy Jolt SQL is handled by json-utils.
      */
-    public static String exampleQueriesTag(String description, String sql) {
-        java.util.Map<String, Object> ex = new java.util.LinkedHashMap<>();
-        ex.put("description", description);
-        ex.put("sql", sql);
-        return JsonUtils.toJsonString(java.util.List.of(ex));
+    public static String exampleQueriesTag(
+            java.util.List<farm.query.vgi.protocol.FunctionExample> examples) {
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (farm.query.vgi.protocol.FunctionExample e : examples) {
+            java.util.Map<String, Object> ex = new java.util.LinkedHashMap<>();
+            ex.put("description", e.description());
+            ex.put("sql", e.sql());
+            out.add(ex);
+        }
+        return JsonUtils.toJsonString(out);
     }
 
     /**

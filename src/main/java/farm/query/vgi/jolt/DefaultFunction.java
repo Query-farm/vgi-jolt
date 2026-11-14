@@ -38,10 +38,12 @@ public final class DefaultFunction extends ScalarFn {
         String exampleDesc =
                 "Apply a bare Jolt default spec to fill in inStock and currency keys "
                         + "that are absent from the input document.";
+        var examples = java.util.List.of(
+                new FunctionExample(exampleSql, exampleDesc, null),
+                ComposedExamples.SHIFT_DEFAULT_REVENUE.toFunctionExample());
         return FunctionMetadata.describe(description())
                 .withCategories("jolt", "json", "transform")
-                .withExamples(java.util.List.of(
-                        new FunctionExample(exampleSql, exampleDesc, null)))
+                .withExamples(examples)
                 .withTags(Meta.objectTags(
                         "Apply Jolt Default Operation",
                         "Apply a single [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) "
@@ -81,7 +83,7 @@ public final class DefaultFunction extends ScalarFn {
                         "DefaultFunction.java"))
                 .withTag("vgi.category", "transformation")
                 .withTag("vgi.example_queries",
-                        JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
+                        JoltEngine.exampleQueriesTag(examples));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

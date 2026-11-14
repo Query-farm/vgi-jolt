@@ -29,10 +29,13 @@ public final class JsonValidFunction extends ScalarFn {
         String exampleDesc =
                 "Returns true: the input is a well-formed JSON document. Malformed JSON "
                         + "returns false instead of erroring.";
+        var examples = java.util.List.of(
+                new FunctionExample(exampleSql, exampleDesc, null),
+                ComposedExamples.GUARDED_SHIFT.toFunctionExample(),
+                ComposedExamples.MAPPING_PREFLIGHT.toFunctionExample());
         return FunctionMetadata.describe(description())
                 .withCategories("jolt", "json", "validation")
-                .withExamples(java.util.List.of(
-                        new FunctionExample(exampleSql, exampleDesc, null)))
+                .withExamples(examples)
                 .withTags(Meta.objectTags(
                         "Validate JSON Document String",
                         "Test whether a string is a well-formed JSON document, returning a "
@@ -63,7 +66,7 @@ public final class JsonValidFunction extends ScalarFn {
                         "JsonValidFunction.java"))
                 .withTag("vgi.category", "validation")
                 .withTag("vgi.example_queries",
-                        JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
+                        JoltEngine.exampleQueriesTag(examples));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

@@ -158,6 +158,16 @@ public final class Main {
                         + "not valid json is a well-formed JSON document. Pass that text "
                         + "straight to the worker's JSON-validity check and return the single "
                         + "boolean it produces."));
+        tasks.add(agentTask(
+                "validate_reshape_default_tiers",
+                "Five raw signup payloads arrive as JSON text: {\"usr\":\"a1\",\"plan\":\"pro\"}, "
+                        + "{\"usr\":\"b2\"}, {\"usr\":\"c3\" (truncated), "
+                        + "{\"usr\":\"d4\",\"plan\":\"team\"} and {\"usr\":\"e5\"}. Using this "
+                        + "worker, drop any payload that is not well-formed JSON, reshape the rest "
+                        + "with a Jolt shift that moves usr to user.id and plan to user.tier, then "
+                        + "apply a Jolt default so user.tier is \"free\" when it is missing. Return "
+                        + "one row per surviving payload with two VARCHAR columns, user_id then "
+                        + "tier, ordered by user_id."));
         return JsonUtils.toJsonString(tasks);
     }
 
@@ -244,7 +254,13 @@ public final class Main {
                         "SELECT jolt.main.is_valid_jolt_spec("
                                 + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]');",
                         "Check that a payload is well-formed JSON before reshaping it.",
-                        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}');"));
+                        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}');",
+                        ComposedExamples.GUARDED_SHIFT.description(),
+                        ComposedExamples.GUARDED_SHIFT.sql(),
+                        ComposedExamples.SHIFT_DEFAULT_REVENUE.description(),
+                        ComposedExamples.SHIFT_DEFAULT_REVENUE.sql(),
+                        ComposedExamples.MAPPING_PREFLIGHT.description(),
+                        ComposedExamples.MAPPING_PREFLIGHT.sql()));
         return tags;
     }
 

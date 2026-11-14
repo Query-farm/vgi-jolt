@@ -3,9 +3,11 @@
 # (Main.agentTestTasks); these grader fields are keyed by that name and never
 # sent to the analyst agent (VGI416).
 #
-# Every reference_sql returns a single scalar or boolean, so grading with
-# ignore_column_names + unordered is independent of Jolt output key order (which
-# Jolt does not guarantee), column aliasing, and row order.
+# The single-function reference_sqls return a single scalar or boolean, so
+# grading with ignore_column_names + unordered is independent of Jolt output key
+# order (which Jolt does not guarantee), column aliasing, and row order. The
+# composed validate_reshape_default_tiers task extracts plain VARCHAR fields
+# (never raw Jolt JSON) and its prompt pins the columns and row order.
 tasks:
   - name: transform_lift_nested_rating
     reference_sql: |-
@@ -41,3 +43,9 @@ tasks:
     success_criteria: The text is not parseable JSON, so the validity check returns false.
     ignore_column_names: true
     unordered: true
+
+  - name: validate_reshape_default_tiers
+    reference_sql: |-
+      SELECT json_extract_string(doc, '$.user.id') AS user_id, json_extract_string(doc, '$.user.tier') AS tier FROM (SELECT jolt.main.jolt_default(jolt.main.jolt_shift(t.p, '{"usr":"user.id","plan":"user.tier"}'), '{"user":{"tier":"free"}}') AS doc FROM (VALUES ('{"usr":"a1","plan":"pro"}'), ('{"usr":"b2"}'), ('{"usr":"c3"'), ('{"usr":"d4","plan":"team"}'), ('{"usr":"e5"}')) AS t(p) WHERE jolt.main.json_valid(t.p)) ORDER BY user_id
+    success_criteria: 'Four rows (the truncated c3 payload is dropped): a1/pro, b2/free, d4/team, e5/free.'
+    ignore_column_names: true

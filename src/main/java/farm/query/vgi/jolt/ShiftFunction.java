@@ -38,10 +38,12 @@ public final class ShiftFunction extends ScalarFn {
         String exampleDesc =
                 "Apply a bare Jolt shift spec to rename and nest flat input keys into "
                         + "a name object with given/family.";
+        var examples = java.util.List.of(
+                new FunctionExample(exampleSql, exampleDesc, null),
+                ComposedExamples.GUARDED_SHIFT.toFunctionExample());
         return FunctionMetadata.describe(description())
                 .withCategories("jolt", "json", "transform")
-                .withExamples(java.util.List.of(
-                        new FunctionExample(exampleSql, exampleDesc, null)))
+                .withExamples(examples)
                 .withTags(Meta.objectTags(
                         "Apply Jolt Shift Operation",
                         "Apply a single [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) "
@@ -81,7 +83,7 @@ public final class ShiftFunction extends ScalarFn {
                         "ShiftFunction.java"))
                 .withTag("vgi.category", "transformation")
                 .withTag("vgi.example_queries",
-                        JoltEngine.exampleQueriesTag(exampleDesc, exampleSql))
+                        JoltEngine.exampleQueriesTag(examples))
                 .withTag("vgi.executable_examples", JoltEngine.executableExamplesTag(
                         "Rename and nest flat keys into a name object via a bare shift spec.",
                         "SELECT jolt.main.jolt_shift("
@@ -100,7 +102,11 @@ public final class ShiftFunction extends ScalarFn {
                         "SELECT jolt.main.is_valid_jolt_spec("
                                 + "'[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]') AS ok",
                         "Validate that a string is a well-formed JSON document.",
-                        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}') AS ok"));
+                        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}') AS ok",
+                        ComposedExamples.GUARDED_SHIFT.description(),
+                        ComposedExamples.GUARDED_SHIFT.sql(),
+                        ComposedExamples.MAPPING_PREFLIGHT.description(),
+                        ComposedExamples.MAPPING_PREFLIGHT.sql()));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {

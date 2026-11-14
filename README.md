@@ -119,6 +119,32 @@ SELECT jolt.jolt_transform(
 Because Jolt does not guarantee key order in its serialized output, compare results
 semantically (e.g. `json_extract` per field) rather than by raw string equality.
 
+### Composing the functions
+
+The functions are built to chain: guard with `json_valid`, reshape with
+`jolt_shift`, fill gaps with `jolt_default`, then query the result with plain SQL.
+
+```sql
+-- Normalize nested order payloads, default the missing currency, total per currency.
+WITH orders(payload) AS (VALUES
+  ('{"order":{"id":101,"total":{"amount":25.0,"currency":"EUR"}}}'),
+  ('{"order":{"id":102,"total":{"amount":40.0}}}'),
+  ('{"order":{"id":103,"total":{"amount":15.5,"currency":"EUR"}}}'),
+  ('{"order":{"id":104,"total":{"amount":9.5}}}')),
+canonical AS (
+  SELECT jolt.jolt_default(
+           jolt.jolt_shift(payload,
+             '{"order":{"id":"order_id","total":{"amount":"amount","currency":"currency"}}}'),
+           '{"currency":"USD"}') AS doc
+  FROM orders)
+SELECT json_extract_string(doc, '$.currency') AS currency,
+       count(*) AS order_count,
+       sum(CAST(json_extract_string(doc, '$.amount') AS DOUBLE)) AS revenue
+FROM canonical GROUP BY currency ORDER BY currency;
+-- EUR  2  40.5
+-- USD  2  49.5
+```
+
 ## Build & test
 
 ```sh

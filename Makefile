@@ -38,7 +38,7 @@ test-sql: build
 		echo "  Then:    export PATH=\"\$$HOME/.local/bin:\$$PATH\"" >&2; \
 		exit 1; \
 	}
-	@JAR="$$(ls $(JAR_GLOB) | head -1)"; \
+	@JAR="$$(ls -t $(JAR_GLOB) 2>/dev/null | head -1)"; \
 	if [ -z "$$JAR" ]; then echo "ERROR: fat JAR not built ($(JAR_GLOB))" >&2; exit 1; fi; \
 	echo "Worker JAR: $$JAR"; \
 	VGI_JOLT_WORKER="java -jar $$(pwd)/$$JAR" \

@@ -136,5 +136,45 @@ statement error
 SELECT jolt.jolt_transform('{not json', '[{"operation":"shift","spec":{"a":"b"}}]');
 ----
 
+# ---- composed pipelines (ComposedExamples.java + the agent-task grader) ------
+
+# json_valid guards jolt_shift: the truncated row 2 is filtered out, not fatal.
+query IT
+SELECT raw.id, json_extract_string(jolt.main.jolt_shift(raw.payload, '{"dev":"device","reading":{"c":"celsius"}}'), '$.device')
+FROM (VALUES (1, '{"dev":"t-1","reading":{"c":21.5}}'), (2, '{"dev":"t-2","reading":'), (3, '{"dev":"t-3","reading":{"c":19.0}}')) AS raw(id, payload)
+WHERE jolt.main.json_valid(raw.payload) ORDER BY raw.id;
+----
+1	t-1
+3	t-3
+
+# jolt_shift -> jolt_default -> aggregate (also the README "Composing" example).
+query TIR
+WITH orders(payload) AS (VALUES ('{"order":{"id":101,"total":{"amount":25.0,"currency":"EUR"}}}'), ('{"order":{"id":102,"total":{"amount":40.0}}}'), ('{"order":{"id":103,"total":{"amount":15.5,"currency":"EUR"}}}'), ('{"order":{"id":104,"total":{"amount":9.5}}}')),
+canonical AS (SELECT jolt.main.jolt_default(jolt.main.jolt_shift(orders.payload, '{"order":{"id":"order_id","total":{"amount":"amount","currency":"currency"}}}'), '{"currency":"USD"}') AS doc FROM orders)
+SELECT json_extract_string(canonical.doc, '$.currency') AS currency, count(*) AS order_count, sum(CAST(json_extract_string(canonical.doc, '$.amount') AS DOUBLE)) AS revenue
+FROM canonical GROUP BY currency ORDER BY currency;
+----
+EUR	2	40.5
+USD	2	49.5
+
+# json_valid + is_valid_jolt_spec preflight of a mapping registry.
+query TTT
+SELECT m.mapping, jolt.main.json_valid(m.sample_doc), jolt.main.is_valid_jolt_spec(m.spec)
+FROM (VALUES ('orders_v1', '{"order":{"id":1}}', '[{"operation":"shift","spec":{"order":{"id":"order_id"}}}]'), ('orders_v2', '{"order":{"id":2}}', '[{"operation":"shfit","spec":{"order":{"id":"order_id"}}}]'), ('sensors_v1', '{"dev":"t-1",}', '[{"operation":"default","spec":{"unit":"C"}}]')) AS m(mapping, sample_doc, spec)
+ORDER BY m.mapping;
+----
+orders_v1	true	true
+orders_v2	true	false
+sensors_v1	false	true
+
+# validate_reshape_default_tiers grader: nested default fills user.tier.
+query TT
+SELECT json_extract_string(doc, '$.user.id') AS user_id, json_extract_string(doc, '$.user.tier') AS tier FROM (SELECT jolt.main.jolt_default(jolt.main.jolt_shift(t.p, '{"usr":"user.id","plan":"user.tier"}'), '{"user":{"tier":"free"}}') AS doc FROM (VALUES ('{"usr":"a1","plan":"pro"}'), ('{"usr":"b2"}'), ('{"usr":"c3"'), ('{"usr":"d4","plan":"team"}'), ('{"usr":"e5"}')) AS t(p) WHERE jolt.main.json_valid(t.p)) ORDER BY user_id;
+----
+a1	pro
+b2	free
+d4	team
+e5	free
+
 statement ok
 DETACH jolt;

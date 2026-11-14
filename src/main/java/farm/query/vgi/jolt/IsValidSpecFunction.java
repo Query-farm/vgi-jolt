@@ -33,10 +33,12 @@ public final class IsValidSpecFunction extends ScalarFn {
                 "Returns true: the input parses and compiles as a Jolt chainr spec. An "
                         + "unknown operation or malformed JSON returns false instead of "
                         + "erroring.";
+        var examples = java.util.List.of(
+                new FunctionExample(exampleSql, exampleDesc, null),
+                ComposedExamples.MAPPING_PREFLIGHT.toFunctionExample());
         return FunctionMetadata.describe(description())
                 .withCategories("jolt", "json", "validation")
-                .withExamples(java.util.List.of(
-                        new FunctionExample(exampleSql, exampleDesc, null)))
+                .withExamples(examples)
                 .withTags(Meta.objectTags(
                         "Validate Jolt Spec String",
                         "Test whether a string is a valid [Bazaarvoice "
@@ -69,7 +71,7 @@ public final class IsValidSpecFunction extends ScalarFn {
                         "IsValidSpecFunction.java"))
                 .withTag("vgi.category", "validation")
                 .withTag("vgi.example_queries",
-                        JoltEngine.exampleQueriesTag(exampleDesc, exampleSql));
+                        JoltEngine.exampleQueriesTag(examples));
     }
 
     @Override protected ArrowType outputType(Schema inputSchema, Arguments args) {
