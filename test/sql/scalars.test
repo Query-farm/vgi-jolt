@@ -14,7 +14,7 @@ statement ok
 LOAD json;
 
 statement ok
-ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION '${VGI_JOLT_WORKER}');
+ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION '{VGI_JOLT_WORKER}');
 
 # ---- jolt_transform: full shift chainr remaps a nested value ----------------
 
@@ -139,13 +139,14 @@ SELECT jolt.jolt_transform('{not json', '[{"operation":"shift","spec":{"a":"b"}}
 # ---- composed pipelines (ComposedExamples.java + the agent-task grader) ------
 
 # json_valid guards jolt_shift: the truncated row 2 is filtered out, not fatal.
-query IT
-SELECT raw.id, json_extract_string(jolt.main.jolt_shift(raw.payload, '{"dev":"device","reading":{"c":"celsius"}}'), '$.device')
+query ITR
+SELECT raw.id, json_extract_string(normalized, '$.device'), CAST(json_extract_string(normalized, '$.celsius') AS DOUBLE)
+FROM (SELECT raw.id, jolt.main.jolt_shift(raw.payload, '{"dev":"device","reading":{"c":"celsius"}}') AS normalized, raw.payload
 FROM (VALUES (1, '{"dev":"t-1","reading":{"c":21.5}}'), (2, '{"dev":"t-2","reading":'), (3, '{"dev":"t-3","reading":{"c":19.0}}')) AS raw(id, payload)
-WHERE jolt.main.json_valid(raw.payload) ORDER BY raw.id;
+WHERE jolt.main.json_valid(raw.payload)) AS raw ORDER BY raw.id;
 ----
-1	t-1
-3	t-3
+1	t-1	21.5
+3	t-3	19.0
 
 # jolt_shift -> jolt_default -> aggregate (also the README "Composing" example).
 query TIR
