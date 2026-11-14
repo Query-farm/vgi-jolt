@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "catalogs": {
+    "released": {
+      "path": "coverage/catalog-released.json",
+      "sha256": "2b61546c42ef2e083e6d3d686f19d5c3b9da62919a43cebbf02afa8e7bf1a986",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:02:25.338156+00:00",
+        "catalog_sha256": "2b61546c42ef2e083e6d3d686f19d5c3b9da62919a43cebbf02afa8e7bf1a986",
+        "notes": "Complete native function/table/view exports through actual Haybarn attachments reconcile five logical scalar names, no tables/views or advertised handlers, no exclusions. Current main adds composed examples and metadata; the transformation/validation implementations are unchanged from v0.4.0. The existing current JAR was reused for catalog collection without rebuilding, and its composed metadata matches current source. Final notebooks execute the public v0.4.0 JAR under managed Java 21.0.8. Current-interface findings describe reviewed compatibility, not exact-current notebook execution."
+      }
+    },
+    "current": {
+      "path": "coverage/catalog-current.json",
+      "sha256": "03b24bd46ae39c2704b854e888a73012890a4a0927946f9c21cb92a253a83855",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:02:25.338156+00:00",
+        "catalog_sha256": "03b24bd46ae39c2704b854e888a73012890a4a0927946f9c21cb92a253a83855",
+        "notes": "Complete native function/table/view exports through actual Haybarn attachments reconcile five logical scalar names, no tables/views or advertised handlers, no exclusions. Current main adds composed examples and metadata; the transformation/validation implementations are unchanged from v0.4.0. The existing current JAR was reused for catalog collection without rebuilding, and its composed metadata matches current source. Final notebooks execute the public v0.4.0 JAR under managed Java 21.0.8. Current-interface findings describe reviewed compatibility, not exact-current notebook execution."
+      }
+    }
+  },
+  "notebooks": [
+    {
+      "path": "01_audit_json_cardinality_changes.ipynb",
+      "sha256": "91687436baf93b95c9ee537b8a03f648147664b693f6dae9f4b0dbd9cb75070e",
+      "execution": {
+        "path": "coverage/run-01.json",
+        "sha256": "38d21b87557756b4367450c744713edfd475b5ee72b0a34e9ba06d633ff5579b"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "object": {
+        "schema": "main",
+        "name": "is_valid_jolt_spec"
+      },
+      "notebook": "01_audit_json_cardinality_changes.ipynb",
+      "sql": [
+        {
+          "cell": "6cc6a292",
+          "reference": "jolt.main.is_valid_jolt_spec"
+        }
+      ],
+      "narrative_cells": [
+        "4234db10"
+      ],
+      "result_cells": [
+        "6cc6a292"
+      ],
+      "interpretation_cells": [
+        "31515af2"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:02:25.338156+00:00",
+        "notebook_sha256": "91687436baf93b95c9ee537b8a03f648147664b693f6dae9f4b0dbd9cb75070e",
+        "catalog_sha256": [
+          "2b61546c42ef2e083e6d3d686f19d5c3b9da62919a43cebbf02afa8e7bf1a986",
+          "03b24bd46ae39c2704b854e888a73012890a4a0927946f9c21cb92a253a83855"
+        ],
+        "purpose": "Validate compilation of the selected full chain before any payload transformations.",
+        "finding": "The selected chain compiles and passes an explicit SQL guard. All twelve structural checks pass for both policies, but ONE still loses four known string occurrences: syntactic specification validity does not establish preservation of business information."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "json_valid"
+      },
+      "notebook": "01_audit_json_cardinality_changes.ipynb",
+      "sql": [
+        {
+          "cell": "1788bb5f",
+          "reference": "jolt.main.json_valid"
+        }
+      ],
+      "narrative_cells": [
+        "7024f62c"
+      ],
+      "result_cells": [
+        "1788bb5f"
+      ],
+      "interpretation_cells": [
+        "5c4f0dcf"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:02:25.338156+00:00",
+        "notebook_sha256": "91687436baf93b95c9ee537b8a03f648147664b693f6dae9f4b0dbd9cb75070e",
+        "catalog_sha256": [
+          "2b61546c42ef2e083e6d3d686f19d5c3b9da62919a43cebbf02afa8e7bf1a986",
+          "03b24bd46ae39c2704b854e888a73012890a4a0927946f9c21cb92a253a83855"
+        ],
+        "purpose": "Separate malformed JSON and unavailable payloads from valid documents with wrong-type or missing label fields.",
+        "finding": "All ten row IDs remain visible. A malformed payload and SQL NULL stay untransformed; valid numeric, missing and explicit-null label fields retain their original diagnostics. Only comparable string/array inputs receive string-count comparisons, preserving a real zero for the empty list."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "jolt_shift"
+      },
+      "notebook": "01_audit_json_cardinality_changes.ipynb",
+      "sql": [
+        {
+          "cell": "stages-query",
+          "reference": "jolt.main.jolt_shift"
+        }
+      ],
+      "narrative_cells": [
+        "stages-question"
+      ],
+      "result_cells": [
+        "stages-query"
+      ],
+      "interpretation_cells": [
+        "stages-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:02:25.338156+00:00",
+        "notebook_sha256": "91687436baf93b95c9ee537b8a03f648147664b693f6dae9f4b0dbd9cb75070e",
+        "catalog_sha256": [
+          "2b61546c42ef2e083e6d3d686f19d5c3b9da62919a43cebbf02afa8e7bf1a986",
+          "03b24bd46ae39c2704b854e888a73012890a4a0927946f9c21cb92a253a83855"
+        ],
+        "purpose": "Expose the single shift operation before a cardinality change can hide the original multiplicity.",
+        "finding": "The bare-object shift spec moves ticket IDs and labels to top-level paths while retaining empty lists, explicit null, numbers and duplicate strings. Extracted labels agree with the source for all valid inputs. Unspecified fields are not an automatic passthrough, and structural relocation does not validate the labels."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "jolt_default"
+      },
+      "notebook": "01_audit_json_cardinality_changes.ipynb",
+      "sql": [
+        {
+          "cell": "stages-query",
+          "reference": "jolt.main.jolt_default"
+        }
+      ],
+      "narrative_cells": [
+        "stages-question"
+      ],
+      "result_cells": [
+        "stages-query"
+      ],
+      "interpretation_cells": [
+        "stages-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:02:25.338156+00:00",
+        "notebook_sha256": "91687436baf93b95c9ee537b8a03f648147664b693f6dae9f4b0dbd9cb75070e",
+        "catalog_sha256": [
+          "2b61546c42ef2e083e6d3d686f19d5c3b9da62919a43cebbf02afa8e7bf1a986",
+          "03b24bd46ae39c2704b854e888a73012890a4a0927946f9c21cb92a253a83855"
+        ],
+        "purpose": "Distinguish an explicitly assigned workflow state from source data and from later label normalization.",
+        "finding": "The default stage supplies unreviewed on all eight valid input documents without changing their selected labels. Invalid and unavailable inputs remain untransformed. Its intermediate output is held fixed in the ONE experiment; the review state is an authored policy, not an inferred source fact."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "jolt_transform"
+      },
+      "notebook": "01_audit_json_cardinality_changes.ipynb",
+      "sql": [
+        {
+          "cell": "0899dbba",
+          "reference": "jolt.main.jolt_transform"
+        }
+      ],
+      "narrative_cells": [
+        "299229a1"
+      ],
+      "result_cells": [
+        "2050558b"
+      ],
+      "interpretation_cells": [
+        "b6bd9488"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:02:25.338156+00:00",
+        "notebook_sha256": "91687436baf93b95c9ee537b8a03f648147664b693f6dae9f4b0dbd9cb75070e",
+        "catalog_sha256": [
+          "2b61546c42ef2e083e6d3d686f19d5c3b9da62919a43cebbf02afa8e7bf1a986",
+          "03b24bd46ae39c2704b854e888a73012890a4a0927946f9c21cb92a253a83855"
+        ],
+        "purpose": "Measure how full-chain cardinality policy changes string occurrences and distinct ticket-label pairs.",
+        "finding": "The full chain agrees with separately staged operations on IDs, labels and review state. MANY retains eight known string occurrences across seven distinct ticket-label pairs; ONE keeps four occurrences/four pairs. The original diagnostics preserve null/missing/type distinctions that the normalized JSON alone can obscure, and duplicate occurrences are not counted as additional tickets."
+      }
+    }
+  ]
+}

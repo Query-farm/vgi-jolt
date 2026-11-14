@@ -1,0 +1,240 @@
+{
+  "query": "SELECT * FROM duckdb_functions() WHERE database_name='jolt' ORDER BY schema_name,function_name",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "function_name",
+    "alias_of",
+    "function_type",
+    "description",
+    "comment",
+    "tags",
+    "return_type",
+    "parameters",
+    "parameter_types",
+    "varargs",
+    "macro_definition",
+    "has_side_effects",
+    "internal",
+    "extension_name",
+    "function_oid",
+    "examples",
+    "stability",
+    "categories"
+  ],
+  "rows": [
+    [
+      "jolt",
+      "22592",
+      "main",
+      "is_valid_jolt_spec",
+      null,
+      "scalar",
+      "True when the input parses and compiles as a Bazaarvoice Jolt chainr spec (a JSON array of operations).",
+      null,
+      {
+        "vgi.category": "validation",
+        "vgi.doc_llm": "Test whether a string is a valid [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) **chainr** spec, returning a `BOOLEAN`.\n\nReturns `true` when the input both parses as JSON and compiles via `Chainr.fromSpec` (i.e. it is a JSON array of recognized operation entries). Returns `false` for malformed JSON, a non-array, or an unknown/invalid operation &mdash; it never raises an error, so it is safe as a guard or filter before calling `jolt_transform`.\n\n**Input:** `spec_json` (`VARCHAR`/`BLOB`). **Output:** `BOOLEAN`, or NULL for a NULL input row.",
+        "vgi.doc_md": "# is_valid_jolt_spec\n\nReturn whether a string compiles as a Jolt chainr spec.\n\n## Usage\n\n```sql\nSELECT jolt.main.is_valid_jolt_spec(\n  '[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]');  -- true\nSELECT jolt.main.is_valid_jolt_spec('not json');  -- false\n```\n\n## Notes\n\n- Never throws: invalid input returns `false`, not an error.\n- NULL input row maps to a NULL result.\n- Use as a pre-flight check before `jolt_transform`, which does raise on an invalid spec.",
+        "vgi.example_queries": "[{\"description\":\"Returns true: the input parses and compiles as a Jolt chainr spec. An unknown operation or malformed JSON returns false instead of erroring.\",\"sql\":\"SELECT jolt.main.is_valid_jolt_spec('[{\\\"operation\\\":\\\"shift\\\",\\\"spec\\\":{\\\"a\\\":\\\"b\\\"}}]');\"},{\"description\":\"Preflight a registry of mappings before deploying them: json_valid checks each sample payload and is_valid_jolt_spec checks each chainr spec. orders_v2 misspells the shift operation (spec_ok false) and sensors_v1 has a trailing comma in its sample (sample_ok false).\",\"sql\":\"SELECT m.mapping, jolt.main.json_valid(m.sample_doc) AS sample_ok, jolt.main.is_valid_jolt_spec(m.spec) AS spec_ok FROM (VALUES ('orders_v1', '{\\\"order\\\":{\\\"id\\\":1}}', '[{\\\"operation\\\":\\\"shift\\\",\\\"spec\\\":{\\\"order\\\":{\\\"id\\\":\\\"order_id\\\"}}}]'), ('orders_v2', '{\\\"order\\\":{\\\"id\\\":2}}', '[{\\\"operation\\\":\\\"shfit\\\",\\\"spec\\\":{\\\"order\\\":{\\\"id\\\":\\\"order_id\\\"}}}]'), ('sensors_v1', '{\\\"dev\\\":\\\"t-1\\\",}', '[{\\\"operation\\\":\\\"default\\\",\\\"spec\\\":{\\\"unit\\\":\\\"C\\\"}}]')) AS m(mapping, sample_doc, spec) ORDER BY m.mapping;\"}]",
+        "vgi.keywords": "[\"jolt\",\"validate\",\"valid\",\"spec\",\"chainr\",\"check\",\"lint\",\"json\",\"is_valid_jolt_spec\",\"well-formed\"]",
+        "vgi.title": "Validate Jolt Spec String"
+      },
+      "BOOLEAN",
+      [
+        "spec_json"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22596,
+      [
+        "SELECT jolt.main.is_valid_jolt_spec('[{\"operation\":\"shift\",\"spec\":{\"a\":\"b\"}}]');",
+        "SELECT m.mapping, jolt.main.json_valid(m.sample_doc) AS sample_ok, jolt.main.is_valid_jolt_spec(m.spec) AS spec_ok FROM (VALUES ('orders_v1', '{\"order\":{\"id\":1}}', '[{\"operation\":\"shift\",\"spec\":{\"order\":{\"id\":\"order_id\"}}}]'), ('orders_v2', '{\"order\":{\"id\":2}}', '[{\"operation\":\"shfit\",\"spec\":{\"order\":{\"id\":\"order_id\"}}}]'), ('sensors_v1', '{\"dev\":\"t-1\",}', '[{\"operation\":\"default\",\"spec\":{\"unit\":\"C\"}}]')) AS m(mapping, sample_doc, spec) ORDER BY m.mapping;"
+      ],
+      "CONSISTENT",
+      [
+        "jolt",
+        "json",
+        "validation"
+      ]
+    ],
+    [
+      "jolt",
+      "22592",
+      "main",
+      "jolt_default",
+      null,
+      "scalar",
+      "Apply a single Jolt 'default' operation (supply default values for keys absent from the input); default_spec is the bare default spec object. Returns JSON.",
+      null,
+      {
+        "vgi.category": "transformation",
+        "vgi.doc_llm": "Apply a single [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) **default** operation to a JSON document and return the result.\n\nThe default operation supplies values for keys that are **absent** from the input; existing keys are left untouched. Use it to normalize documents to a known shape (guaranteeing fields exist, supplying fallback defaults) before downstream processing.\n\n**Inputs:** `input_json` (`VARCHAR`/`BLOB` JSON, the data vector) and `default_spec` (a constant **bare** default spec object). The `Defaultr` is built once per batch.\n\n**Output:** the enriched document as a JSON `VARCHAR`. NULL input row yields NULL; malformed input JSON or default spec raises a DuckDB error.",
+        "vgi.doc_md": "# jolt_default\n\nApply one Jolt **default** operation &mdash; supply values for keys absent from the input document.\n\n## Usage\n\n```sql\nSELECT jolt.main.jolt_default(\n  '{\"name\":\"widget\"}',\n  '{\"inStock\":true,\"currency\":\"USD\"}');\n-- => {\"name\":\"widget\",\"inStock\":true,\"currency\":\"USD\"}\n```\n\nKeys already present in the input win; the spec only fills gaps. The spec is the **bare** default spec object, not the chainr operation envelope.\n\n## Notes\n\n- Returns `VARCHAR` JSON; output key order is not guaranteed.\n- NULL input row maps to a NULL result.\n- Malformed input JSON or default spec raises an error.",
+        "vgi.example_queries": "[{\"description\":\"Apply a bare Jolt default spec to fill in inStock and currency keys that are absent from the input document.\",\"sql\":\"SELECT jolt.main.jolt_default('{\\\"name\\\":\\\"widget\\\"}', '{\\\"inStock\\\":true,\\\"currency\\\":\\\"USD\\\"}');\"},{\"description\":\"Normalize nested order payloads with jolt_shift, fill the missing currency with jolt_default (USD), then total revenue per currency: EUR has 2 orders summing 40.5 and the two currency-less orders roll up as USD 49.5.\",\"sql\":\"WITH orders(payload) AS (VALUES ('{\\\"order\\\":{\\\"id\\\":101,\\\"total\\\":{\\\"amount\\\":25.0,\\\"currency\\\":\\\"EUR\\\"}}}'), ('{\\\"order\\\":{\\\"id\\\":102,\\\"total\\\":{\\\"amount\\\":40.0}}}'), ('{\\\"order\\\":{\\\"id\\\":103,\\\"total\\\":{\\\"amount\\\":15.5,\\\"currency\\\":\\\"EUR\\\"}}}'), ('{\\\"order\\\":{\\\"id\\\":104,\\\"total\\\":{\\\"amount\\\":9.5}}}')), canonical AS (SELECT jolt.main.jolt_default(jolt.main.jolt_shift(orders.payload, '{\\\"order\\\":{\\\"id\\\":\\\"order_id\\\",\\\"total\\\":{\\\"amount\\\":\\\"amount\\\",\\\"currency\\\":\\\"currency\\\"}}}'), '{\\\"currency\\\":\\\"USD\\\"}') AS doc FROM orders) SELECT json_extract_string(canonical.doc, '$.currency') AS currency, count(*) AS order_count, sum(CAST(json_extract_string(canonical.doc, '$.amount') AS DOUBLE)) AS revenue FROM canonical GROUP BY currency ORDER BY currency;\"}]",
+        "vgi.keywords": "[\"jolt\",\"default\",\"defaultr\",\"json\",\"fill\",\"fallback\",\"supply defaults\",\"normalize\",\"ensure keys\",\"json default\"]",
+        "vgi.title": "Apply Jolt Default Operation"
+      },
+      "VARCHAR",
+      [
+        "input_json",
+        "default_spec"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22597,
+      [
+        "SELECT jolt.main.jolt_default('{\"name\":\"widget\"}', '{\"inStock\":true,\"currency\":\"USD\"}');",
+        "WITH orders(payload) AS (VALUES ('{\"order\":{\"id\":101,\"total\":{\"amount\":25.0,\"currency\":\"EUR\"}}}'), ('{\"order\":{\"id\":102,\"total\":{\"amount\":40.0}}}'), ('{\"order\":{\"id\":103,\"total\":{\"amount\":15.5,\"currency\":\"EUR\"}}}'), ('{\"order\":{\"id\":104,\"total\":{\"amount\":9.5}}}')), canonical AS (SELECT jolt.main.jolt_default(jolt.main.jolt_shift(orders.payload, '{\"order\":{\"id\":\"order_id\",\"total\":{\"amount\":\"amount\",\"currency\":\"currency\"}}}'), '{\"currency\":\"USD\"}') AS doc FROM orders) SELECT json_extract_string(canonical.doc, '$.currency') AS currency, count(*) AS order_count, sum(CAST(json_extract_string(canonical.doc, '$.amount') AS DOUBLE)) AS revenue FROM canonical GROUP BY currency ORDER BY currency;"
+      ],
+      "CONSISTENT",
+      [
+        "jolt",
+        "json",
+        "transform"
+      ]
+    ],
+    [
+      "jolt",
+      "22592",
+      "main",
+      "jolt_shift",
+      null,
+      "scalar",
+      "Apply a single Jolt 'shift' operation (path-based copy/move of input values into an output tree); shift_spec is the bare shift spec object. Returns JSON.",
+      null,
+      {
+        "vgi.category": "transformation",
+        "vgi.doc_llm": "Apply a single [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) **shift** operation to a JSON document &mdash; the most common Jolt operation &mdash; and return the transformed JSON string.\n\nA shift spec is a tree that mirrors the input: each leaf is an **output path** telling Jolt where to copy the matched input value. This is the convenience entry point for the single shift case; for multi-step pipelines use `jolt_transform`.\n\n**Inputs:** `input_json` (`VARCHAR`/`BLOB` JSON, the data vector) and `shift_spec` (a constant **bare** shift spec object, NOT wrapped in the `{\"operation\":\"shift\",...}` chainr envelope). The `Shiftr` is built once per batch.\n\n**Output:** the reshaped document as a JSON `VARCHAR`. NULL input row yields NULL; malformed input JSON or shift spec raises a DuckDB error.",
+        "vgi.doc_md": "# jolt_shift\n\nApply one Jolt **shift** operation &mdash; path-based copy/move of input values into an output tree.\n\n## Usage\n\n```sql\nSELECT jolt.main.jolt_shift(\n  '{\"first\":\"Ada\",\"last\":\"Lovelace\"}',\n  '{\"first\":\"name.given\",\"last\":\"name.family\"}');\n-- => {\"name\":{\"given\":\"Ada\",\"family\":\"Lovelace\"}}\n```\n\nThe spec is the **bare** shift spec object, not the chainr operation envelope. Wildcards (`*`), array indexing, and `@`/`#`/`$` references follow standard Jolt shift semantics.\n\n## Notes\n\n- Returns `VARCHAR` JSON; output key order is not guaranteed.\n- NULL input row maps to a NULL result.\n- Malformed input JSON or shift spec raises an error.",
+        "vgi.example_queries": "[{\"description\":\"Apply a bare Jolt shift spec to rename and nest flat input keys into a name object with given/family.\",\"sql\":\"SELECT jolt.main.jolt_shift('{\\\"first\\\":\\\"Ada\\\",\\\"last\\\":\\\"Lovelace\\\"}', '{\\\"first\\\":\\\"name.given\\\",\\\"last\\\":\\\"name.family\\\"}');\"},{\"description\":\"Skip malformed payloads with json_valid, then reshape the well-formed ones with jolt_shift: row 2 is truncated JSON and is filtered out, rows 1 and 3 become {\\\"device\\\":...,\\\"celsius\\\":...} documents.\",\"sql\":\"SELECT raw.id, jolt.main.jolt_shift(raw.payload, '{\\\"dev\\\":\\\"device\\\",\\\"reading\\\":{\\\"c\\\":\\\"celsius\\\"}}') AS normalized FROM (VALUES (1, '{\\\"dev\\\":\\\"t-1\\\",\\\"reading\\\":{\\\"c\\\":21.5}}'), (2, '{\\\"dev\\\":\\\"t-2\\\",\\\"reading\\\":'), (3, '{\\\"dev\\\":\\\"t-3\\\",\\\"reading\\\":{\\\"c\\\":19.0}}')) AS raw(id, payload) WHERE jolt.main.json_valid(raw.payload) ORDER BY raw.id;\"}]",
+        "vgi.executable_examples": "[{\"description\":\"Rename and nest flat keys into a name object via a bare shift spec.\",\"sql\":\"SELECT jolt.main.jolt_shift('{\\\"first\\\":\\\"Ada\\\",\\\"last\\\":\\\"Lovelace\\\"}', '{\\\"first\\\":\\\"name.given\\\",\\\"last\\\":\\\"name.family\\\"}') AS out\"},{\"description\":\"Lift a deeply nested value to the top level with a full chainr spec.\",\"sql\":\"SELECT jolt.main.jolt_transform('{\\\"rating\\\":{\\\"primary\\\":{\\\"value\\\":3}}}', '[{\\\"operation\\\":\\\"shift\\\",\\\"spec\\\":{\\\"rating\\\":{\\\"primary\\\":{\\\"value\\\":\\\"Rating\\\"}}}}]') AS out\"},{\"description\":\"Fill in default keys absent from the input document.\",\"sql\":\"SELECT jolt.main.jolt_default('{\\\"name\\\":\\\"widget\\\"}', '{\\\"inStock\\\":true,\\\"currency\\\":\\\"USD\\\"}') AS out\"},{\"description\":\"Validate that a string is a well-formed Jolt chainr spec.\",\"sql\":\"SELECT jolt.main.is_valid_jolt_spec('[{\\\"operation\\\":\\\"shift\\\",\\\"spec\\\":{\\\"a\\\":\\\"b\\\"}}]') AS ok\"},{\"description\":\"Validate that a string is a well-formed JSON document.\",\"sql\":\"SELECT jolt.main.json_valid('{\\\"a\\\":[1,2,3]}') AS ok\"},{\"description\":\"Skip malformed payloads with json_valid, then reshape the well-formed ones with jolt_shift: row 2 is truncated JSON and is filtered out, rows 1 and 3 become {\\\"device\\\":...,\\\"celsius\\\":...} documents.\",\"sql\":\"SELECT raw.id, jolt.main.jolt_shift(raw.payload, '{\\\"dev\\\":\\\"device\\\",\\\"reading\\\":{\\\"c\\\":\\\"celsius\\\"}}') AS normalized FROM (VALUES (1, '{\\\"dev\\\":\\\"t-1\\\",\\\"reading\\\":{\\\"c\\\":21.5}}'), (2, '{\\\"dev\\\":\\\"t-2\\\",\\\"reading\\\":'), (3, '{\\\"dev\\\":\\\"t-3\\\",\\\"reading\\\":{\\\"c\\\":19.0}}')) AS raw(id, payload) WHERE jolt.main.json_valid(raw.payload) ORDER BY raw.id;\"},{\"description\":\"Preflight a registry of mappings before deploying them: json_valid checks each sample payload and is_valid_jolt_spec checks each chainr spec. orders_v2 misspells the shift operation (spec_ok false) and sensors_v1 has a trailing comma in its sample (sample_ok false).\",\"sql\":\"SELECT m.mapping, jolt.main.json_valid(m.sample_doc) AS sample_ok, jolt.main.is_valid_jolt_spec(m.spec) AS spec_ok FROM (VALUES ('orders_v1', '{\\\"order\\\":{\\\"id\\\":1}}', '[{\\\"operation\\\":\\\"shift\\\",\\\"spec\\\":{\\\"order\\\":{\\\"id\\\":\\\"order_id\\\"}}}]'), ('orders_v2', '{\\\"order\\\":{\\\"id\\\":2}}', '[{\\\"operation\\\":\\\"shfit\\\",\\\"spec\\\":{\\\"order\\\":{\\\"id\\\":\\\"order_id\\\"}}}]'), ('sensors_v1', '{\\\"dev\\\":\\\"t-1\\\",}', '[{\\\"operation\\\":\\\"default\\\",\\\"spec\\\":{\\\"unit\\\":\\\"C\\\"}}]')) AS m(mapping, sample_doc, spec) ORDER BY m.mapping;\"}]",
+        "vgi.keywords": "[\"jolt\",\"shift\",\"shiftr\",\"json\",\"copy\",\"move\",\"rename\",\"nest\",\"restructure\",\"path\",\"mapping\",\"json shift\"]",
+        "vgi.title": "Apply Jolt Shift Operation"
+      },
+      "VARCHAR",
+      [
+        "input_json",
+        "shift_spec"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22598,
+      [
+        "SELECT jolt.main.jolt_shift('{\"first\":\"Ada\",\"last\":\"Lovelace\"}', '{\"first\":\"name.given\",\"last\":\"name.family\"}');",
+        "SELECT raw.id, jolt.main.jolt_shift(raw.payload, '{\"dev\":\"device\",\"reading\":{\"c\":\"celsius\"}}') AS normalized FROM (VALUES (1, '{\"dev\":\"t-1\",\"reading\":{\"c\":21.5}}'), (2, '{\"dev\":\"t-2\",\"reading\":'), (3, '{\"dev\":\"t-3\",\"reading\":{\"c\":19.0}}')) AS raw(id, payload) WHERE jolt.main.json_valid(raw.payload) ORDER BY raw.id;"
+      ],
+      "CONSISTENT",
+      [
+        "jolt",
+        "json",
+        "transform"
+      ]
+    ],
+    [
+      "jolt",
+      "22592",
+      "main",
+      "jolt_transform",
+      null,
+      "scalar",
+      "Apply a full Bazaarvoice Jolt spec (a JSON array of shift/default/remove/cardinality/sort/modify operations) to an input JSON document; returns the transformed JSON string.",
+      null,
+      {
+        "vgi.category": "transformation",
+        "vgi.doc_llm": "Apply a full [Bazaarvoice Jolt](https://github.com/bazaarvoice/jolt) **chainr** spec to a JSON document and return the transformed JSON string.\n\nA chainr spec is a JSON **array** of operation entries, each `{\"operation\": <name>, \"spec\": <op-spec>}`, applied in order. Supported operations include `shift` (path-based copy/move), `default` (fill absent keys), `remove` (delete keys), `cardinality` (single&harr;list), `sort`, and the `modify-*-beta` function operations.\n\n**Inputs:** `input_json` (`VARCHAR` or `BLOB` JSON document, taken as the data vector) and `spec_json` (a constant chainr spec, compiled once per batch and reused across rows).\n\n**Output:** the transformed document as a JSON `VARCHAR`. A NULL input row yields NULL. Malformed input JSON or a malformed/invalid spec raises a DuckDB error. Use this as the headline function for arbitrary multi-step JSON restructuring; for a single operation prefer `jolt_shift` or `jolt_default`.",
+        "vgi.doc_md": "# jolt_transform\n\nApply a complete Jolt **chainr** specification to a JSON document, returning the restructured JSON.\n\n## Usage\n\n```sql\nSELECT jolt.main.jolt_transform(\n  '{\"rating\":{\"primary\":{\"value\":3}}}',\n  '[{\"operation\":\"shift\",\"spec\":{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]');\n-- => {\"Rating\":3}\n```\n\nThe spec is a JSON array of operations (`shift`, `default`, `remove`, `cardinality`, `sort`, `modify-*-beta`) applied in sequence. The spec argument is a query constant: it is compiled once and reused for every row in the batch.\n\n## Notes\n\n- Returns `VARCHAR` JSON; key order in the output is not guaranteed by Jolt.\n- NULL input row maps to a NULL result.\n- Malformed input JSON or an invalid spec raises an error rather than returning NULL.",
+        "vgi.example_queries": "[{\"description\":\"Apply a full Jolt chainr spec (a single shift operation) to lift a deeply nested value up to a top-level Rating key.\",\"sql\":\"SELECT jolt.main.jolt_transform('{\\\"rating\\\":{\\\"primary\\\":{\\\"value\\\":3}}}', '[{\\\"operation\\\":\\\"shift\\\",\\\"spec\\\":{\\\"rating\\\":{\\\"primary\\\":{\\\"value\\\":\\\"Rating\\\"}}}}]');\"}]",
+        "vgi.keywords": "[\"jolt\",\"transform\",\"chainr\",\"json\",\"restructure\",\"reshape\",\"remap\",\"rename\",\"shift\",\"default\",\"remove\",\"cardinality\",\"modify\",\"json transformation\"]",
+        "vgi.title": "Apply Jolt Transformation Spec"
+      },
+      "VARCHAR",
+      [
+        "input_json",
+        "spec_json"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22599,
+      [
+        "SELECT jolt.main.jolt_transform('{\"rating\":{\"primary\":{\"value\":3}}}', '[{\"operation\":\"shift\",\"spec\":{\"rating\":{\"primary\":{\"value\":\"Rating\"}}}}]');"
+      ],
+      "CONSISTENT",
+      [
+        "jolt",
+        "json",
+        "transform"
+      ]
+    ],
+    [
+      "jolt",
+      "22592",
+      "main",
+      "json_valid",
+      null,
+      "scalar",
+      "True when the input parses as a well-formed JSON document.",
+      null,
+      {
+        "vgi.category": "validation",
+        "vgi.doc_llm": "Test whether a string is a well-formed JSON document, returning a `BOOLEAN`.\n\nReturns `true` when the input parses via the Jolt JSON reader (`JsonUtils.jsonToObject`), `false` otherwise. It never raises an error, making it a safe companion guard for the transform scalars (`jolt_transform`, `jolt_shift`, `jolt_default`), which DO error on malformed input.\n\n**Input:** `input_json` (`VARCHAR`/`BLOB`). **Output:** `BOOLEAN`, or NULL for a NULL input row.",
+        "vgi.doc_md": "# json_valid\n\nReturn whether a string parses as a well-formed JSON document.\n\n## Usage\n\n```sql\nSELECT jolt.main.json_valid('{\"a\":[1,2,3]}');  -- true\nSELECT jolt.main.json_valid('{oops');           -- false\n```\n\n## Notes\n\n- Never throws: malformed JSON returns `false`, not an error.\n- NULL input row maps to a NULL result.\n- Pair with the transform scalars to filter out bad rows before transforming.",
+        "vgi.example_queries": "[{\"description\":\"Returns true: the input is a well-formed JSON document. Malformed JSON returns false instead of erroring.\",\"sql\":\"SELECT jolt.main.json_valid('{\\\"a\\\":[1,2,3]}');\"},{\"description\":\"Skip malformed payloads with json_valid, then reshape the well-formed ones with jolt_shift: row 2 is truncated JSON and is filtered out, rows 1 and 3 become {\\\"device\\\":...,\\\"celsius\\\":...} documents.\",\"sql\":\"SELECT raw.id, jolt.main.jolt_shift(raw.payload, '{\\\"dev\\\":\\\"device\\\",\\\"reading\\\":{\\\"c\\\":\\\"celsius\\\"}}') AS normalized FROM (VALUES (1, '{\\\"dev\\\":\\\"t-1\\\",\\\"reading\\\":{\\\"c\\\":21.5}}'), (2, '{\\\"dev\\\":\\\"t-2\\\",\\\"reading\\\":'), (3, '{\\\"dev\\\":\\\"t-3\\\",\\\"reading\\\":{\\\"c\\\":19.0}}')) AS raw(id, payload) WHERE jolt.main.json_valid(raw.payload) ORDER BY raw.id;\"},{\"description\":\"Preflight a registry of mappings before deploying them: json_valid checks each sample payload and is_valid_jolt_spec checks each chainr spec. orders_v2 misspells the shift operation (spec_ok false) and sensors_v1 has a trailing comma in its sample (sample_ok false).\",\"sql\":\"SELECT m.mapping, jolt.main.json_valid(m.sample_doc) AS sample_ok, jolt.main.is_valid_jolt_spec(m.spec) AS spec_ok FROM (VALUES ('orders_v1', '{\\\"order\\\":{\\\"id\\\":1}}', '[{\\\"operation\\\":\\\"shift\\\",\\\"spec\\\":{\\\"order\\\":{\\\"id\\\":\\\"order_id\\\"}}}]'), ('orders_v2', '{\\\"order\\\":{\\\"id\\\":2}}', '[{\\\"operation\\\":\\\"shfit\\\",\\\"spec\\\":{\\\"order\\\":{\\\"id\\\":\\\"order_id\\\"}}}]'), ('sensors_v1', '{\\\"dev\\\":\\\"t-1\\\",}', '[{\\\"operation\\\":\\\"default\\\",\\\"spec\\\":{\\\"unit\\\":\\\"C\\\"}}]')) AS m(mapping, sample_doc, spec) ORDER BY m.mapping;\"}]",
+        "vgi.keywords": "[\"json\",\"valid\",\"validate\",\"well-formed\",\"parse\",\"check\",\"guard\",\"json_valid\",\"is json\"]",
+        "vgi.title": "Validate JSON Document String"
+      },
+      "BOOLEAN",
+      [
+        "input_json"
+      ],
+      [
+        "ANY"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22600,
+      [
+        "SELECT jolt.main.json_valid('{\"a\":[1,2,3]}');",
+        "SELECT raw.id, jolt.main.jolt_shift(raw.payload, '{\"dev\":\"device\",\"reading\":{\"c\":\"celsius\"}}') AS normalized FROM (VALUES (1, '{\"dev\":\"t-1\",\"reading\":{\"c\":21.5}}'), (2, '{\"dev\":\"t-2\",\"reading\":'), (3, '{\"dev\":\"t-3\",\"reading\":{\"c\":19.0}}')) AS raw(id, payload) WHERE jolt.main.json_valid(raw.payload) ORDER BY raw.id;",
+        "SELECT m.mapping, jolt.main.json_valid(m.sample_doc) AS sample_ok, jolt.main.is_valid_jolt_spec(m.spec) AS spec_ok FROM (VALUES ('orders_v1', '{\"order\":{\"id\":1}}', '[{\"operation\":\"shift\",\"spec\":{\"order\":{\"id\":\"order_id\"}}}]'), ('orders_v2', '{\"order\":{\"id\":2}}', '[{\"operation\":\"shfit\",\"spec\":{\"order\":{\"id\":\"order_id\"}}}]'), ('sensors_v1', '{\"dev\":\"t-1\",}', '[{\"operation\":\"default\",\"spec\":{\"unit\":\"C\"}}]')) AS m(mapping, sample_doc, spec) ORDER BY m.mapping;"
+      ],
+      "CONSISTENT",
+      [
+        "jolt",
+        "json",
+        "validation"
+      ]
+    ]
+  ]
+}
