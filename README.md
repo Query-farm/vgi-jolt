@@ -18,7 +18,7 @@ renaming/moving keys, supplying defaults, removing fields, and normalizing
 cardinality, all declaratively (no code).
 
 ```sql
-ATTACH 'jolt' (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.4.0.jar');
+ATTACH 'jolt' (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.4.1.jar');
 
 -- Remap a nested value to a top-level key with a full Jolt spec (a "chainr").
 SELECT jolt.jolt_transform(
@@ -35,7 +35,7 @@ the [Jolt notebooks](notebooks/README.md).
 Every [GitHub release](https://github.com/Query-farm/vgi-jolt/releases) ships a self-contained worker jar. It needs Java 21 or newer. Download it:
 
 ```sh
-curl -LO https://github.com/Query-farm/vgi-jolt/releases/download/v0.4.0/vgi-jolt-v0.4.0.jar
+curl -LO https://github.com/Query-farm/vgi-jolt/releases/download/v0.4.1/vgi-jolt-v0.4.1.jar
 ```
 
 then attach it from DuckDB (run from the directory holding the jar, or use its absolute path):
@@ -44,7 +44,7 @@ then attach it from DuckDB (run from the directory holding the jar, or use its a
 INSTALL vgi FROM community;
 LOAD vgi;
 
-ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.4.0.jar');
+ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.4.1.jar');
 
 -- Apply a full chainr spec to lift a deeply nested rating value up to a top-level Rating
 -- key.
