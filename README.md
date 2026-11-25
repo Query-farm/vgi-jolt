@@ -18,7 +18,7 @@ renaming/moving keys, supplying defaults, removing fields, and normalizing
 cardinality, all declaratively (no code).
 
 ```sql
-ATTACH 'jolt' (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.4.1.jar');
+ATTACH 'jolt' (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.5.0.jar');
 
 -- Remap a nested value to a top-level key with a full Jolt spec (a "chainr").
 SELECT jolt.jolt_transform(
@@ -35,8 +35,10 @@ the [Jolt notebooks](notebooks/README.md).
 Every [GitHub release](https://github.com/Query-farm/vgi-jolt/releases) ships a self-contained worker jar. It needs Java 21 or newer. Download it:
 
 ```sh
-curl -LO https://github.com/Query-farm/vgi-jolt/releases/download/v0.4.1/vgi-jolt-v0.4.1.jar
+curl -LO https://github.com/Query-farm/vgi-jolt/releases/download/v0.5.0/vgi-jolt-v0.5.0.jar
 ```
+
+Requires Haybarn 2.0.1 or newer (vgi-jolt 0.5.0 speaks VGI protocol 3.4; older Haybarn builds load a 3.3 `vgi` extension that cannot attach it).
 
 then attach it from DuckDB (run from the directory holding the jar, or use its absolute path):
 
@@ -44,7 +46,7 @@ then attach it from DuckDB (run from the directory holding the jar, or use its a
 INSTALL vgi FROM community;
 LOAD vgi;
 
-ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.4.1.jar');
+ATTACH 'jolt' AS jolt (TYPE vgi, LOCATION 'java -jar vgi-jolt-v0.5.0.jar');
 
 -- Apply a full chainr spec to lift a deeply nested rating value up to a top-level Rating
 -- key.
@@ -158,7 +160,7 @@ make build         # fat JAR -> build/libs/vgi-jolt-<ver>-all.jar
 ```
 
 The SQL E2E runner is `haybarn-unittest` 2.0
-(`uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'`, then
+(`uv tool install --prerelease allow 'haybarn-unittest>=2.0.1rc3,<2.1'`, then
 `export PATH="$HOME/.local/bin:$PATH"`). This worker speaks VGI protocol
 **vgi.v3 / 3.3**, which only haybarn 2.0's community `vgi` extension accepts.
 
